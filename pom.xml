@@ -1,0 +1,208 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pt.ua.tm</groupId>
+    <artifactId>neji</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>neji</name>
+    <url>http://maven.apache.org</url>
+    
+    <!--
+    Project developers and organization
+    -->
+    <developers>
+        <developer>
+            <id>david</id>
+            <name>David Campos</name>
+            <email>david.campos@ua.pt</email>
+            <organization>UA.PT Bioinformatics</organization>
+            <organizationUrl>http://bioinformatics.ua.pt</organizationUrl>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>0</timezone>
+        </developer>
+    </developers>
+    <organization>
+        <name>UA.PT Bioinformatics</name>
+        <url>http://bioinformatics.ua.pt</url>
+    </organization>
+    
+    <!--
+    Artifact deployment configuration (project redistribution)
+    -->
+    <distributionManagement>
+        <!-- Versioned releases are published to the releases repository -->
+        <repository>
+            <id>bioinformatics-releases</id>
+            <name>Bioinformatics Nexus (Internal Releases)</name>
+            <url>http://bioinformatics.ua.pt/maven/content/repositories/releases</url>
+        </repository>
+        <!-- Snapshot releases are published to the snapshots repository -->
+        <snapshotRepository>
+            <id>bioinformatics-snapshots</id>
+            <name>Bioinformatics Nexus (Internal Snapshots)</name>
+            <url>http://bioinformatics.ua.pt/maven/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+  
+    <!--
+    Repositories used to fetch maven plugins used by the project
+    -->
+    <pluginRepositories>
+        <!-- UA.PT Bioinformatics Maven Repository -->
+        <pluginRepository>
+            <id>bioinformatics-all</id>
+            <name>Bioinformatics Nexus (Plugins)</name>
+            <url>http://bioinformatics.ua.pt/maven/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <!--
+    Project properties (can be reused anywhere in the pom like this: ${prop.name})
+    -->
+    <properties>
+        <!-- Java version we use and depend on -->
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
+
+        <!-- Compiler options -->
+        <maven.compiler.optimize>true</maven.compiler.optimize>
+        <maven.compiler.showDeprecations>true</maven.compiler.showDeprecations>
+
+        <!-- Explicitly set the source and output encoding to prevent Maven warnings -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        
+        <targetJdk>1.6</targetJdk>
+    </properties>
+
+    <!--
+    Project build configuration
+    -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <optimize>${maven.compiler.optimize}</optimize>
+                    <showDeprecations>${maven.compiler.showDeprecations}</showDeprecations>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2.1</version>
+                <configuration>
+                    <descriptorRefs>
+                        <!--
+                        Generate 2 packages:
+                            - one with the project code only (to be used as a maven dependency)
+                            - one with the project and its dependencies (to be used standalone)
+                        -->
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>${manifest.mainClass}</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <Class-Path>.</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.8</version>
+            </plugin>
+        </plugins>
+    </build>
+  
+    <!--
+      Repositories used to fetch project dependencies
+    -->
+    <repositories>
+        <!-- UA.PT Bioinformatics Maven Repository -->
+        <repository>
+            <id>bioinformatics-all</id>
+            <name>Bioinformatics Nexus (All)</name>
+            <url>http://bioinformatics.ua.pt/maven/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <!--
+    Dependencies
+    -->
+    <dependencies>
+        <!-- Gimli core project-->
+        <dependency>
+            <groupId>pt.ua.tm</groupId>
+            <artifactId>gimli</artifactId>
+            <version>1.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.aliasi</groupId>
+            <artifactId>lingpipe</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+        
+        <!-- JSON generation -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.2.2</version>
+            <scope>compile</scope>
+        </dependency>
+        
+        <!-- JUnit-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
