@@ -7,7 +7,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Xmx4G -ea -classpath %classpath pt.ua.tm.neji.Main -i /Volumes/data/Dropbox/corpora/test3/ -if RAW  -o /Volumes/data/Dropbox/corpora/test3/out/ -of A1 -d resources/lexicons/UMLS_GO/ -t 1 -v</exec.args>
+                <exec.args>-Xmx4G -ea -classpath %classpath pt.ua.tm.neji.Main -i /Volumes/data/Dropbox/corpora/test2/ -if XML -o /Volumes/data/Dropbox/corpora/test2/out/ -of XML -x ArticleTitle -d resources/lexicons/UMLS_GO/ -t 1 -v -c</exec.args>
                 <exec.executable>java</exec.executable>
                 <exec.classpathScope>runtime</exec.classpathScope>
             </properties>
@@ -19,7 +19,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -Xmx4G -ea -classpath %classpath pt.ua.tm.neji.Main -i /Volumes/data/Dropbox/corpora/test3/ -if RAW  -o /Volumes/data/Dropbox/corpora/test3/out/ -of A1 -d resources/lexicons/UMLS_GO/ -t 1 -v</exec.args>
+                <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -Xmx4G -ea -classpath %classpath pt.ua.tm.neji.Main -i /Volumes/data/Dropbox/corpora/test2/ -if XML -o /Volumes/data/Dropbox/corpora/test2/out/ -of XML -x ArticleTitle -d resources/lexicons/UMLS_GO/ -t 1 -v -c</exec.args>
                 <exec.executable>java</exec.executable>
                 <exec.classpathScope>runtime</exec.classpathScope>
                 <jpda.listen>true</jpda.listen>
@@ -32,7 +32,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2:exec</goal>
             </goals>
             <properties>
-                <exec.args>${profiler.args} -Xmx4G -ea -classpath %classpath pt.ua.tm.neji.Main -i /Volumes/data/Dropbox/corpora/test3/ -if RAW  -o /Volumes/data/Dropbox/corpora/test3/out/ -of A1 -d resources/lexicons/UMLS_GO/ -t 1 -v</exec.args>
+                <exec.args>${profiler.args} -Xmx4G -ea -classpath %classpath pt.ua.tm.neji.Main -i /Volumes/data/Dropbox/corpora/test2/ -if XML -o /Volumes/data/Dropbox/corpora/test2/out/ -of XML -x ArticleTitle -d resources/lexicons/UMLS_GO/ -t 1 -v -c</exec.args>
                 <exec.executable>${profiler.java}</exec.executable>
                 <profiler.action>profile</profiler.action>
             </properties>

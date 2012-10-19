@@ -51,7 +51,6 @@ public class Main {
      * Help message.
      */
     private static final String HEADER = "\nNeji: modular biomedical concept recognition made easy, fast and accessible.";
-    
     private static final String USAGE = "-i <folder> -if [XML|RAW] [-x <tags>] "
             + "-o <folder> -of [XML|NEJI|A1|CONLL|JSON] [-d <folder>] "
             + "[-m <file>,<group>,<config>,<parsing>,<dictionaries>] "
@@ -62,7 +61,6 @@ public class Main {
             + "-config: File with features configuration;\n"
             + "-parsing: FW (forward) or BW (backward);\n"
             + "-lexicons: Folder that contains the lexicons to perform normalization (optional).";
-    
     private static final String EXAMPLES = "\nUsage examples:\n"
             + "1: "
             + "./neji.sh -i input -if XML -o output -of XML -x text -d folder -t 2\n"
@@ -148,6 +146,9 @@ public class Main {
             logger.error("The specified path is not a folder or is not readable.");
             return;
         }
+        folderCorpusIn = test.getAbsolutePath();
+        folderCorpusIn += File.separator;
+
 
         // Get Input format
         InputFormat inputFormat;
@@ -171,6 +172,9 @@ public class Main {
             logger.error("The specified path is not a folder or is not writable.");
             return;
         }
+        folderCorpusOut = test.getAbsolutePath();
+        folderCorpusOut += File.separator;
+
 
         // Get Output format
         OutputFormat outputFormat;
@@ -237,7 +241,17 @@ public class Main {
                 parsings[i] = Constants.Parsing.valueOf(strs[3].trim().toUpperCase());
 
                 if (strs.length == 5) {
-                    normalization[i] = strs[4].trim();
+                    String normalizationDictionaryFolder = strs[4].trim();
+                    
+                    test = new File(normalizationDictionaryFolder);
+                    if (!test.isDirectory() || !test.canRead()) {
+                        logger.error("The path of the normalization dictionary is not a folder or is not readable.");
+                        return;
+                    }
+                    normalizationDictionaryFolder = test.getAbsolutePath();
+                    normalizationDictionaryFolder += File.separator;
+
+                    normalization[i] = normalizationDictionaryFolder;
                 }
             }
         }
@@ -255,6 +269,9 @@ public class Main {
                 logger.error("The specified path is not a folder or is not readable.");
                 return;
             }
+            dictionariesFolder = test.getAbsolutePath();
+            dictionariesFolder += File.separator;
+
         }
 
         // Get verbose mode
@@ -278,7 +295,7 @@ public class Main {
             }));
         }
 
-        // Get verbose mode
+        // Get compressed mode
         boolean compressed = false;
         if (commandLine.hasOption('c')) {
             compressed = true;
