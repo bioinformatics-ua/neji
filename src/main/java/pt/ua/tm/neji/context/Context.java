@@ -21,6 +21,7 @@ import pt.ua.tm.gimli.external.gdep.GDepParser.ParserLevel;
 import pt.ua.tm.gimli.external.wrapper.Parser;
 import pt.ua.tm.neji.dictionary.DictionariesLoader;
 import pt.ua.tm.neji.dictionary.Dictionary;
+import pt.ua.tm.neji.dictionary.Dictionary.Matching;
 import pt.ua.tm.neji.ml.MLModel;
 import pt.ua.tm.neji.sentencesplitter.SentenceSplitter;
 import uk.ac.man.entitytagger.EntityTagger;
@@ -72,7 +73,6 @@ public class Context {
         this.setParsingLevelAutomatically = parserLevel == null ? true : false;
     }
 
-    
     // Models
     public MLModel getModel(int i) {
         return models[i];
@@ -163,7 +163,7 @@ public class Context {
                 }
             }
         }
-        
+
         if (parserLevel == null) {
             parserLevel = ParserLevel.TOKENIZATION;
         }
@@ -200,7 +200,7 @@ public class Context {
             ArgParser ap = new ArgParser(new String[]{""});
             ap.addProperties("resources/lexicons/species/properties.conf");
             Matcher m = EntityTagger.getMatcher(ap, Loggers.getDefaultLogger(ap));
-            dictionariesTS.add(new Dictionary(m, "SPEC"));
+            dictionariesTS.add(new Dictionary(m, Matching.EXACT, "SPEC"));
         }
 
         // Initilizase sentence splitters
@@ -214,7 +214,7 @@ public class Context {
         // Set initialized
         isInitialized = true;
     }
-    
+
     public void addMultiThreadingSupport(final int numThreads)
             throws GimliException {
         if (!isInitialized) {

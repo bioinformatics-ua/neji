@@ -15,7 +15,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
+import monq.ie.Term2Re;
 import monq.jfa.AbstractFaAction;
 import monq.jfa.ByteCharSource;
 import monq.jfa.CompileDfaException;
@@ -226,13 +228,17 @@ public class LexEBIReader extends Module {
     public static void main(String[] args) {
 
         String fileIn = "/Users/david/Downloads/geneProt70.xml.gz";
-        String outPreferred = "/Volumes/data/Dropbox/PhD/work/platform/code/neji/resources/lexicons/prge/lexebi_prge_human_preferred_linkout.tsv";
-        String outSynonyms = "/Volumes/data/Dropbox/PhD/work/platform/code/neji/resources/lexicons/prge/lexebi_prge_human_synonyms_linkout.tsv";
+        String outPreferred = "/Volumes/data/Dropbox/PhD/work/platform/code/neji/resources/lexicons/prge/lexebi_prge_human_preferred.tsv";
+        String outSynonyms = "/Volumes/data/Dropbox/PhD/work/platform/code/neji/resources/lexicons/prge/lexebi_prge_human_synonyms.tsv";
+        String outPreferredRegex = "/Volumes/data/Dropbox/PhD/work/platform/code/neji/resources/lexicons/prge/lexebi_prge_human_preferred_regex.tsv";
+        String outSynonymsRegex = "/Volumes/data/Dropbox/PhD/work/platform/code/neji/resources/lexicons/prge/lexebi_prge_human_synonyms_regex.tsv";
 
         try {
 
             FileOutputStream preferred = new FileOutputStream(outPreferred);
             FileOutputStream synonyms = new FileOutputStream(outSynonyms);
+            FileOutputStream preferredRegex = new FileOutputStream(outPreferredRegex);
+            FileOutputStream synonymsRegex = new FileOutputStream(outSynonymsRegex);
             LexEBIReader reader = new LexEBIReader();
 
             logger.info("Collecting dictionary data from file...");
@@ -244,8 +250,10 @@ public class LexEBIReader extends Module {
             logger.info("NUM UP: {}", reader.getNumUP());
 
 
-            writeToFile(reader.getPreferred(), preferred);
-            writeToFile(reader.getSynonyms(), synonyms);
+            writeToFile(reader.getPreferred(), preferred, false);
+            writeToFile(reader.getSynonyms(), synonyms, false);
+            writeToFile(reader.getPreferred(), preferredRegex, true);
+            writeToFile(reader.getSynonyms(), synonymsRegex, true);
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -255,18 +263,43 @@ public class LexEBIReader extends Module {
 
     }
 
-    private static void writeToFile(Map<String, List<String>> dict, OutputStream out) throws IOException {
+    private static void writeToFile(Map<String, List<String>> dict, OutputStream out, boolean useRegex) throws IOException {
         Iterator<String> it = dict.keySet().iterator();
         while (it.hasNext()) {
             String id = it.next();
 
-            String toWrite = entryToTSV(id, dict.get(id));
+            List<String> names = dict.get(id);
+            
+            if (useRegex) {
+                names = getRegexNames(names);
+            }
+            
+            String toWrite = entryToTSV(id, names);
 
             if (toWrite != null) {
                 out.write(toWrite.getBytes());
             }
         }
         out.close();
+    }
+
+    private static List<String> getRegexNames(List<String> names) {
+        List<String> regexNames = new ArrayList<String>();
+
+        for (String name : names) {
+            
+            String regex = Term2Re.convert(name);
+            regex = "(" + regex + ")";
+            
+            regex = regex.replaceAll("\\{", "\\\\{");
+            regex = regex.replaceAll("\\}", "\\\\}");
+
+            if (!regexNames.contains(regex)) {
+                regexNames.add(regex);
+            }
+        }
+
+        return regexNames;
     }
 
     private static String entryToTSV(String id, List<String> names) {
@@ -285,13 +318,13 @@ public class LexEBIReader extends Module {
             sb.append("|");
         }
         sb.setLength(sb.length() - 1);
-        
-        
+
+
         // Temporary
-        sb.append("\t");
-        sb.append("UNIPROT:");
-        sb.append(id);
-        
+//        sb.append("\t");
+//        sb.append("UNIPROT:");
+//        sb.append(id);
+
         sb.append("\n");
         return sb.toString();
     }

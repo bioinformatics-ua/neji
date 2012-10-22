@@ -6,6 +6,7 @@ package pt.ua.tm.neji.dictionary;
  */
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -15,8 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.config.Constants;
 import pt.ua.tm.gimli.exception.GimliException;
+import pt.ua.tm.neji.dictionary.Dictionary.Matching;
 import uk.ac.man.entitytagger.EntityTagger;
 import uk.ac.man.entitytagger.matching.Matcher;
+import uk.ac.man.entitytagger.matching.matchers.ACIDMatcher;
 
 /**
  *
@@ -29,17 +32,20 @@ public class DictionariesLoader {
      */
     private static Logger logger = LoggerFactory.getLogger(DictionariesLoader.class);
     private List<String> priority;
+    private List<Matching> matchings;
     private List<Dictionary> dictionaries;
 
-    public DictionariesLoader(List<String> priority) {
+    public DictionariesLoader(List<String> priority, List<Matching> matchings) {
         assert (priority != null);
         this.dictionaries = new ArrayList<Dictionary>();
         this.priority = priority;
+        this.matchings = matchings;
     }
 
     public DictionariesLoader(InputStream input) throws GimliException {
         assert (input != null);
         this.dictionaries = new ArrayList<Dictionary>();
+        this.matchings = new ArrayList<Matching>();
         loadPriority(input);
     }
 
@@ -54,7 +60,25 @@ public class DictionariesLoader {
                     continue;
                 }
                 line = line.replace(".txt", ".tsv");
-                priority.add(line);
+
+                String[] parts = line.split("\t");
+
+                if (parts.length != 2) {
+                    throw new RuntimeException("The dictionaries priority file "
+                            + "does not follow the required format: <file>\t[EXACT|REGEX]");
+                }
+
+                Matching matching = null;
+                
+                try {
+                    matching = Matching.valueOf(parts[1]);
+                } catch (Exception ex) {
+                    throw new RuntimeException("The dictionaries priority file "
+                            + "does not follow the required format: <file>\t[EXACT|REGEX]");
+                }
+                
+                priority.add(parts[0]);
+                matchings.add(matching);
             }
             br.close();
         } catch (IOException ex) {
@@ -66,36 +90,47 @@ public class DictionariesLoader {
     public void load(File folder, boolean ignoreCase) {
         assert (folder != null);
         Pattern groupPattern = Pattern.compile("([A-Za-z0-9]+?)\\.");
-        for (String name : priority) {
 
-//            logger.info("NAME: {}", name );
-            
+        for (int i = 0; i < priority.size(); i++) {
+            String name = priority.get(i);
+            Matching matching = matchings.get(i);
+
             String group = null;
             java.util.regex.Matcher m = groupPattern.matcher(name);
             while (m.find()) {
                 group = m.group(1);
             }
-
             if (group == null) {
                 throw new RuntimeException("The file name of the lexicon does not follow the required format: *GROUP.*");
             }
 
-            String variantMatcher = folder.getAbsolutePath() + File.separator + name;
-//            String ignoreCase = "true";
-
-            
-            Boolean b = ignoreCase;
-            ArgParser ap = new ArgParser(new String[]{"--variantMatcher", variantMatcher, "--ignoreCase", b.toString()});
-
-            java.util.logging.Logger log = Loggers.getDefaultLogger(ap);
-            if (!Constants.verbose) {
-                log.setLevel(Level.SEVERE);
+            Matcher matcher = null;
+            String dictionaryFileName = folder.getAbsolutePath() + File.separator + name;
+            if (matching.equals(Matching.EXACT)) {
+                matcher = getExactMatcher(dictionaryFileName, ignoreCase);
+            } else if (matching.equals(Matching.REGEX)) {
+                matcher = getRegexMatcher(dictionaryFileName);
             }
-            Matcher matcher = EntityTagger.getMatcher(ap, log);
 
-            Dictionary d = new Dictionary(matcher, group);
+            Dictionary d = new Dictionary(matcher, matching, group);
             dictionaries.add(d);
         }
+    }
+
+    private Matcher getExactMatcher(String fileName, boolean ignoreCase) {
+        Boolean b = ignoreCase;
+        ArgParser ap = new ArgParser(new String[]{"--variantMatcher", fileName, "--ignoreCase", b.toString()});
+
+        java.util.logging.Logger log = Loggers.getDefaultLogger(ap);
+        if (!Constants.verbose) {
+            log.setLevel(Level.SEVERE);
+        }
+        return EntityTagger.getMatcher(ap, log);
+    }
+
+    private Matcher getRegexMatcher(String fileName) {
+        HashMap<String, Pattern> patterns = ACIDMatcher.loadPatterns(new File(fileName)).getA();
+        return new RegexMatcher(patterns);
     }
 
     public List<Dictionary> getDictionaries() {

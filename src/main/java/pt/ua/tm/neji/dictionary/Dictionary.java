@@ -12,11 +12,18 @@ import uk.ac.man.entitytagger.matching.Matcher;
  */
 public class Dictionary {
 
+    public static enum Matching {
+      REGEX,
+      EXACT
+    };
+    
     private Matcher matcher;
     private String group;
+    private Matching matching;
 
-    public Dictionary(Matcher matcher, String group) {
+    public Dictionary(Matcher matcher, Matching matching, String group) {
         this.group = group;
+        this.matching = matching;
         this.matcher = matcher;
     }
 
@@ -36,4 +43,11 @@ public class Dictionary {
         this.matcher = matcher;
     }
 
+    public Matching getMatching() {
+        return matching;
+    }
+
+    public void setMatching(Matching matching) {
+        this.matching = matching;
+    }
 }

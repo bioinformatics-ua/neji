@@ -4,7 +4,6 @@
  */
 package pt.ua.tm.neji.reader;
 
-import com.sun.jndi.toolkit.ctx.Continuation;
 import monq.jfa.AbstractFaAction;
 import monq.jfa.CompileDfaException;
 import monq.jfa.DfaRun;

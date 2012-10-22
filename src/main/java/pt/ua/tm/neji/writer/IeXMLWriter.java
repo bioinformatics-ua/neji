@@ -75,7 +75,7 @@ public class IeXMLWriter extends Tagger {
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
             // Get sentence from document
             String sentence = yytext.substring(startSentence, start);
-            int offset_id = sentence.indexOf(">") + 1;
+            int offset_id = sentence.indexOf('>') + 1;
             sentence = sentence.substring(offset_id);
             
             // Get respective sentence from corpus

@@ -6,10 +6,12 @@ package pt.ua.tm.neji.core;
  */
 
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import monq.jfa.Dfa;
 import monq.jfa.DfaRun;
+import pt.ua.tm.gimli.exception.GimliException;
 
 /**
  *
@@ -28,6 +30,4 @@ public abstract class Module {
     public DfaRun getDfaRun() {
         return dfa.createRun();
     }
-
-
 }
