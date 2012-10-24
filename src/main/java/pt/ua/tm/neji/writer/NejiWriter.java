@@ -64,14 +64,17 @@ public class NejiWriter extends Tagger {
             int startSentence = yytext.indexOf("<s id=");
             int endSentence = yytext.lastIndexOf("</s>") + 4;
 
+            int realStart = yytext.indexOf(">", startSentence) + 1;
+            int realEnd = endSentence - 4;
+
             // Get sentence with XML tags
-            String sentence = yytext.substring(startSentence, endSentence);
+            String sentence = yytext.substring(realStart, realEnd);
 
             // Get respective sentence from corpus
             Sentence s = corpus.getSentence(sentenceCounter);
 
             //Remove sentence tags and escape XML
-            sentence = sentence.replaceAll("\\<.*?>", "");
+//            sentence = sentence.replaceAll("\\<.*?>", "");
             //sentence = StringEscapeUtils.escapeXml(sentence);
             yytext.replace(startSentence, endSentence, sentence);
             
