@@ -86,6 +86,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         
         <targetJdk>1.6</targetJdk>
+        
+        <mainClass>pt.ua.tm.neji.Main</mainClass>
     </properties>
 
     <!--
@@ -119,7 +121,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>${manifest.mainClass}</mainClass>
+                            <mainClass>${mainClass}</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Class-Path>.</Class-Path>
@@ -203,6 +205,12 @@
             <artifactId>junit</artifactId>
             <version>3.8.1</version>
             <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
         </dependency>
     </dependencies>
 </project>

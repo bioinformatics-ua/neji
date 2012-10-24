@@ -7,7 +7,6 @@ package pt.ua.tm.neji;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -18,6 +17,7 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.config.Constants;
+import pt.ua.tm.gimli.external.gdep.GDepParser;
 import pt.ua.tm.neji.batch.Batch;
 import pt.ua.tm.neji.context.Context;
 import pt.ua.tm.neji.main.Processor;
@@ -51,9 +51,10 @@ public class Main {
      * Help message.
      */
     private static final String HEADER = "\nNeji: modular biomedical concept recognition made easy, fast and accessible.";
-    private static final String USAGE = "-i <folder> -if [XML|RAW] [-x <tags>] "
+    private static final String USAGE = "-i <folder> -if [XML|RAW] [-x <tags>] [-f <wildcard filter>] "
             + "-o <folder> -of [XML|NEJI|A1|CONLL|JSON] [-d <folder>] "
             + "[-m <file>,<group>,<config>,<parsing>,<dictionaries>] "
+            + "[-pl <PARSING_LEVEL>] [-p <processor.class>] "
             + "[-c] [-t <threads>] [-v]";
     private static final String MODEL_HELP = "Please follow the format: <file>,<group>,<config>,<parsing>,<dictionaries>\n"
             + "-file: File with model;\n"
@@ -71,17 +72,14 @@ public class Main {
     private static final String FOOTER = "For more instructions, please visit http://bioinformatics.ua.pt/neji.";
 
     public static enum InputFormat {
-
         XML, RAW
     };
 
     public static enum OutputFormat {
-
         A1, NEJI, JSON, CONLL, XML
     };
 
     public static void main(String[] args) {
-
         int NUM_THREADS = Runtime.getRuntime().availableProcessors() - 1;
         NUM_THREADS = NUM_THREADS > 0 ? NUM_THREADS : 1;
 
@@ -92,6 +90,7 @@ public class Main {
 
         options.addOption("i", "input", true, "Folder with corpus files.");
         options.addOption("o", "output", true, "Folder to save the annotated corpus files.");
+        options.addOption("f", "input-filter", true, "Wildcard to filter files in input folder");
 
         Option o = new Option("m", "models", true, MODEL_HELP);
         o.setArgs(Integer.MAX_VALUE);
@@ -99,15 +98,16 @@ public class Main {
 
         options.addOption("d", "dictionaires", true, "Folder that contains the dictionaries.");
 
-        options.addOption("if", "input format", true, "XML or RAW");
-        options.addOption("of", "output format", true, "A1, NEJI, JSON, CONLL or IEXML");
+        options.addOption("if", "input-format", true, "XML or RAW");
+        options.addOption("of", "output-format", true, "A1, NEJI, JSON, CONLL or IEXML");
+        
+        options.addOption("l", "parsing-level", true, "TOKENIZATION | POS | LEMMATIZATION | CHUNKING | DEPENDENCY");
+        options.addOption("p", "processor-class", true, "Full name of pipeline processor class.");
 
-        options.addOption("x", "XML tags", true, "XML tags to be considered.");
+        options.addOption("x", "xml-tags", true, "XML tags to be considered.");
 
         options.addOption("v", "verbose", false, "Verbose mode.");
-
         options.addOption("c", "compressed", false, "If files are compressed using GZip.");
-
         options.addOption("t", "threads", true, "Number of threads. By default, if more than one core is available, it is the number of cores minus 1.");
 
         CommandLine commandLine = null;
@@ -131,7 +131,6 @@ public class Main {
             return;
         }
 
-
         File test = null;
         // Get corpus folder for input
         String folderCorpusIn = null;
@@ -148,7 +147,11 @@ public class Main {
         }
         folderCorpusIn = test.getAbsolutePath();
         folderCorpusIn += File.separator;
-
+        
+        String inputFolderWildcard = null;
+        if (commandLine.hasOption("f")) {
+            inputFolderWildcard = commandLine.getOptionValue("f");
+        }
 
         // Get Input format
         InputFormat inputFormat;
@@ -256,7 +259,6 @@ public class Main {
             }
         }
 
-
         // Get dictionaries folder
         boolean doDictionaries = false;
         String dictionariesFolder = null;
@@ -271,7 +273,6 @@ public class Main {
             }
             dictionariesFolder = test.getAbsolutePath();
             dictionariesFolder += File.separator;
-
         }
 
         // Get verbose mode
@@ -311,8 +312,32 @@ public class Main {
                 return;
             }
         }
-
-
+        
+        // Load pipeline processor
+        Class processor = Processor.class;
+        if (commandLine.hasOption("p")) {
+            String processorName = commandLine.getOptionValue("p");
+            try {
+                processor = Class.forName(processorName);
+            } catch (ClassNotFoundException ex) {
+                logger.error("Could not load pipeline processor \"" + processorName + "\"");
+                return;
+            }
+        }
+        
+        // Load parsing level
+        GDepParser.ParserLevel parsingLevel = null;
+        if (commandLine.hasOption("l")) {
+            String parsingLevelName = commandLine.getOptionValue("l");
+            try {
+                parsingLevel = GDepParser.ParserLevel.valueOf(parsingLevelName);
+            } catch (IllegalArgumentException ex) {
+                logger.error("Invalid parsing level \"" + parsingLevelName + "\". "
+                           + "Must be one of " + GDepParser.ParserLevel.values());
+                return;
+            }
+        }
+        
         MLModel[] mlmodels = new MLModel[0];
         if (doModels) {
             mlmodels = new MLModel[models.length];
@@ -321,22 +346,20 @@ public class Main {
             }
         }
 
-
         Context context = new Context(
                 mlmodels, // Models
                 dictionariesFolder, // Dictionaries folder
-                false); // Use LINNAEUS    
-
+                parsingLevel, // Parsing level
+                false); // Use LINNAEUS
+        
         try {
-
-            Batch batch = new Batch(folderCorpusIn, folderCorpusOut, compressed, NUM_THREADS);
+            Batch batch = new Batch(folderCorpusIn, folderCorpusOut, compressed, NUM_THREADS, inputFolderWildcard);
 
             if (inputFormat.equals(InputFormat.XML)) {
-                batch.run(Processor.class, context, inputFormat, outputFormat, xmlTags);
+                batch.run(processor, context, inputFormat, outputFormat, xmlTags);
             } else {
-                batch.run(Processor.class, context, inputFormat, outputFormat);
+                batch.run(processor, context, inputFormat, outputFormat);
             }
-
         } catch (Exception ex) {
             logger.error("There was a problem adding running the batch.", ex);
             return;

@@ -7,13 +7,17 @@ package pt.ua.tm.neji.batch;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.slf4j.Logger;
@@ -32,20 +36,26 @@ public class Batch {
      * {@link Logger} to be used in the class.
      */
     private static Logger logger = LoggerFactory.getLogger(Batch.class);
-    private String inputFolderPath, outputFolderPath;
+    private String inputFolderPath, outputFolderPath, inputWildcardFilter;
     private int numThreads;
     private boolean compressed;
 
+    
     public Batch(final String inputFolderPath, final String outputFolderPath,
             boolean compressed, final int numThreads) {
+        this(inputFolderPath, outputFolderPath, compressed, numThreads, null);
+    }
+    
+    public Batch(final String inputFolderPath, final String outputFolderPath,
+            boolean compressed, final int numThreads, final String inputWildcardFilter) {
         this.inputFolderPath = inputFolderPath;
         this.outputFolderPath = outputFolderPath;
         this.compressed = compressed;
         this.numThreads = numThreads;
+        this.inputWildcardFilter = inputWildcardFilter;
     }
 
     public void run(Class c, Context context, Object... args) throws GimliException {
-
         logger.info("Loading context...");
         context.initialize();
         context.addMultiThreadingSupport(numThreads);
@@ -66,29 +76,29 @@ public class Batch {
             newArgs[i + 4] = args[i];
         }
 
-        try {
-
-            ExecutorService exec = Executors.newFixedThreadPool(numThreads);
-            File inputFolder = new File(inputFolderPath);
-            
-            File[] ff;
+        try {            
+            List<String> wildcards = new ArrayList<String>();
+            if (this.inputWildcardFilter != null) {
+                wildcards.add(this.inputWildcardFilter);
+            }
             if (compressed) {
-                ff = inputFolder.listFiles(new FileUtil.Filter(new String[]{"gz"}));
-            } else {
-                ff = inputFolder.listFiles();
+                wildcards.add("*.gz");
+            }
+            if (wildcards.isEmpty()) {
+                wildcards.add("*");
             }
             
-            
-            File f;
+            FilenameFilter filter = new WildcardFileFilter(wildcards);
+            File[] ff = new File(inputFolderPath).listFiles(filter);      
 
-
+            ExecutorService exec = Executors.newFixedThreadPool(numThreads);
             logger.info("Started processing...");
-
+            
             // Start timer
             StopWatch sw = new StopWatch();
             sw.start();
 
-
+            File f;
             for (int i = 0; i < ff.length; i++) {
                 f = ff[i];
                 if (f.isDirectory()) {
