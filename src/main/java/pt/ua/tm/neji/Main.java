@@ -14,6 +14,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.config.Constants;
@@ -333,7 +334,7 @@ public class Main {
                 parsingLevel = GDepParser.ParserLevel.valueOf(parsingLevelName);
             } catch (IllegalArgumentException ex) {
                 logger.error("Invalid parsing level \"" + parsingLevelName + "\". "
-                           + "Must be one of " + GDepParser.ParserLevel.values());
+                           + "Must be one of " + StringUtils.join(GDepParser.ParserLevel.values(), ", "));
                 return;
             }
         }
