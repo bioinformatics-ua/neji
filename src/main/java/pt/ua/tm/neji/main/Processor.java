@@ -29,6 +29,7 @@ import pt.ua.tm.neji.reader.XMLReader;
 import pt.ua.tm.neji.sentence.SentenceTagger;
 import pt.ua.tm.neji.sentencesplitter.SentenceSplitter;
 import pt.ua.tm.neji.writer.A1Writer;
+import pt.ua.tm.neji.writer.Base64Writer;
 import pt.ua.tm.neji.writer.CoNLLWriter;
 import pt.ua.tm.neji.writer.IeXMLWriter;
 import pt.ua.tm.neji.writer.JSONWriter;
@@ -140,6 +141,8 @@ public class Processor implements Runnable {
                 writer = new JSONWriter(c);
             } else if (outputFormat.equals(OutputFormat.CONLL)) {
                 writer = new CoNLLWriter(c);
+            } else if (outputFormat.equals(OutputFormat.B64)) {
+                writer = new Base64Writer(c);
             } else {
                 throw new RuntimeException("Invalid output format.");
             }

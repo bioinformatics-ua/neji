@@ -77,7 +77,7 @@ public class Main {
     };
 
     public static enum OutputFormat {
-        A1, NEJI, JSON, CONLL, XML
+        A1, NEJI, JSON, CONLL, XML, B64
     };
 
     public static void main(String[] args) {
@@ -100,7 +100,7 @@ public class Main {
         options.addOption("d", "dictionaires", true, "Folder that contains the dictionaries.");
 
         options.addOption("if", "input-format", true, "XML or RAW");
-        options.addOption("of", "output-format", true, "A1, NEJI, JSON, CONLL or IEXML");
+        options.addOption("of", "output-format", true, "A1, NEJI, JSON, CONLL, IEXML or B64");
         
         options.addOption("l", "parsing-level", true, "TOKENIZATION | POS | LEMMATIZATION | CHUNKING | DEPENDENCY");
         options.addOption("p", "processor-class", true, "Full name of pipeline processor class.");
