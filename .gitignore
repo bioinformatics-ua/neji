@@ -1,4 +1,6 @@
-resources/*
+resources
+target
+logs
 
 # osx noise
 .DS_Store
