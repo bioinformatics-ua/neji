@@ -86,7 +86,7 @@ public class JSONWriter extends Tagger {
             Sentence s = corpus.getSentence(sentenceCounter);
 
             //Remove sentence tags and escape XML
-            sentence = sentence.replaceAll("\\<.*?>", "");
+//            sentence = sentence.replaceAll("\\<.*?>", "");
             //sentence = StringEscapeUtils.escapeXml(sentence);
             yytext.replace(startSentence, endSentence, sentence);
 
