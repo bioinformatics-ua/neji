@@ -1,166 +1,161 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
+
 package pt.ua.tm.neji.context;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
 import martin.common.ArgParser;
 import martin.common.Loggers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.config.ModelConfig;
-import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.gimli.external.gdep.GDepParser;
 import pt.ua.tm.gimli.external.gdep.GDepParser.ParserLevel;
 import pt.ua.tm.gimli.external.wrapper.Parser;
+import pt.ua.tm.gimli.model.CRFBase;
 import pt.ua.tm.neji.dictionary.DictionariesLoader;
 import pt.ua.tm.neji.dictionary.Dictionary;
-import pt.ua.tm.neji.dictionary.Dictionary.Matching;
+import pt.ua.tm.neji.exception.NejiException;
 import pt.ua.tm.neji.ml.MLModel;
+import pt.ua.tm.neji.ml.MLModelsLoader;
 import pt.ua.tm.neji.sentencesplitter.SentenceSplitter;
 import uk.ac.man.entitytagger.EntityTagger;
 import uk.ac.man.entitytagger.matching.Matcher;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+
 /**
- *
- * @author david
+ * Context provider that manages sentence splitters, parsers, dictionaries and ML models..
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
 public class Context {
 
-    /**
-     * {@link Logger} to be used in the class.
-     */
+    /** {@link Logger} to be used in the class. */
     private static Logger logger = LoggerFactory.getLogger(Context.class);
-    private MLModel[] models;
     private LinkedBlockingQueue<Parser> parsersTS;
     private LinkedBlockingQueue<SentenceSplitter> sentencesplittersTS;
     private List<Dictionary> dictionariesTS;
+    private List<MLModel> modelsTS;
     private boolean isInitialized;
     private String dictionariesFolder;
+    private String modelsFolder;
     private ParserLevel parserLevel;
     private boolean useLINNAEUS, doModels, doDictionaries,
             readyForMultiThreading, setParsingLevelAutomatically;
 
-    public Context(final MLModel[] models,
-            final String dictionariesFolder,
-            final boolean useLINNAEUS) {
-        this(models, dictionariesFolder, null, useLINNAEUS);
+    public Context(final String modelsFolder, final String dictionariesFolder) {
+        this(modelsFolder, dictionariesFolder, false);
     }
 
-    public Context(final MLModel[] models,
-            final String dictionariesFolder, final ParserLevel parserLevel,
-            final boolean useLINNAEUS) {
+    public Context(final String modelsFolder,
+                   final String dictionariesFolder,
+                   final boolean useLINNAEUS) {
+        this(modelsFolder, dictionariesFolder, null, useLINNAEUS);
+    }
 
-        this.models = models;
+    public Context(final String modelsFolder, final String dictionariesFolder, final ParserLevel parserLevel,
+                   final boolean useLINNAEUS) {
+
         this.dictionariesFolder = dictionariesFolder;
+        this.modelsFolder = modelsFolder;
         this.parserLevel = parserLevel;
         this.useLINNAEUS = useLINNAEUS;
 
-        this.parsersTS = new LinkedBlockingQueue<Parser>();
-        this.dictionariesTS = new ArrayList<Dictionary>();
-        this.sentencesplittersTS = new LinkedBlockingQueue<SentenceSplitter>();
+        this.parsersTS = new LinkedBlockingQueue<>();
+        this.dictionariesTS = new ArrayList<>();
+        this.modelsTS = new ArrayList<>();
+        this.sentencesplittersTS = new LinkedBlockingQueue<>();
+
         this.readyForMultiThreading = false;
         this.isInitialized = false;
 
-        this.doModels = models == null ? false : true;
-        this.doDictionaries = dictionariesFolder == null ? false : true;
-        this.setParsingLevelAutomatically = parserLevel == null ? true : false;
+        this.doModels = modelsFolder != null;
+        this.doDictionaries = dictionariesFolder != null;
+        this.setParsingLevelAutomatically = parserLevel == null;
     }
+
+    public ContextProcessors take() throws InterruptedException {
+        Parser parser = parsersTS.take();
+        SentenceSplitter splitter = sentencesplittersTS.take();
+        List<CRFBase> contextModels = new ArrayList<>();
+
+        if (doModels) {
+            for (MLModel model : modelsTS) {
+                contextModels.add(model.take());
+            }
+        }
+
+        return new ContextProcessors(parser, splitter, contextModels);
+    }
+
+    public void put(ContextProcessors contextProcessors) throws InterruptedException {
+        sentencesplittersTS.put(contextProcessors.getSentenceSplitter());
+        parsersTS.put(contextProcessors.getParser());
+
+        for (int i = 0; i < modelsTS.size(); i++) {
+            MLModel model = modelsTS.get(i);
+            model.put(contextProcessors.getCRF(i));
+        }
+    }
+
 
     // Models
-    public MLModel getModel(int i) {
-        return models[i];
-    }
-
-    public int sizeModels() {
-        return models.length;
-    }
-
-    // Sentence splitters
-    public SentenceSplitter takeSentenceSplitter() throws InterruptedException {
-        return sentencesplittersTS.take();
-    }
-
-    public void putSenteceSplitter(final SentenceSplitter ss) throws InterruptedException {
-        sentencesplittersTS.put(ss);
-    }
-
-    // Parsers
-    public Parser takeParser() throws InterruptedException {
-        return parsersTS.take();
-    }
-
-    public void putParser(Parser parser) throws InterruptedException {
-        parsersTS.put(parser);
+    public List<MLModel> getModels() {
+        return modelsTS;
     }
 
     // Dictionaries
-    public Dictionary getDictionary(int i) {
-        return dictionariesTS.get(i);
-    }
-
-    public int sizeDictionaries() {
-        return dictionariesTS.size();
-    }
-
     public List<Dictionary> getDictionaries() {
         return dictionariesTS;
     }
 
-    public void initialize() throws GimliException {
+    public void initialize() throws NejiException {
         if (isInitialized) {
             return;
         }
 
-        // Load models and Find appropriate Parsing level
+
         if (doModels) {
-            for (int i = 0; i < models.length; i++) {
-                try {
-                    models[i].initialize();
-                } catch (Exception ex) {
-                    throw new GimliException("There was a problem loading the CRF models.", ex);
-                }
+            String priorityFileName = modelsFolder + "_priority";
+            MLModelsLoader ml;
+            try {
+                ml = new MLModelsLoader(Files.newInputStream(Paths.get(priorityFileName)));
+            } catch (IOException ex) {
+                throw new NejiException("There was a problem reading the dictionaries.", ex);
+            }
+            ml.load(new File(modelsFolder));
+
+            // Get models
+            modelsTS = ml.getModels();
+
+            // Initialize models
+            for (MLModel model : modelsTS) {
+                model.initialize();
             }
 
-
-
             if (setParsingLevelAutomatically) {
-                int[] counters = new int[4];
-                for (int i = 0; i < counters.length; i++) {
-                    counters[i] = 0;
-                }
-
-                for (int i = 0; i < models.length; i++) {
-                    ModelConfig mc = models[i].getConfig();
-                    if (mc.isLemma()) {
-                        counters[0]++;
-                    }
-                    if (mc.isPos()) {
-                        counters[1]++;
-                    }
-                    if (mc.isChunk()) {
-                        counters[2]++;
-                    }
-                    if (mc.isNLP()) {
-                        counters[3]++;
-                    }
-                }
-
-                if (counters[3] > 0) {
-                    parserLevel = ParserLevel.DEPENDENCY;
-                } else if (counters[2] > 0) {
-                    parserLevel = ParserLevel.CHUNKING;
-                } else if (counters[1] > 0) {
-                    parserLevel = ParserLevel.POS;
-                } else if (counters[0] > 0) {
-                    parserLevel = ParserLevel.LEMMATIZATION;
-                }
+                this.parserLevel = getParserLevel(modelsTS);
             }
         }
 
@@ -175,10 +170,8 @@ public class Context {
             gp.launch();
             parsersTS.put(gp);
         } catch (Exception ex) {
-            throw new GimliException("There was a problem loading the parser.", ex);
+            throw new NejiException("There was a problem loading the parser.", ex);
         }
-
-
 
 
         // Load dictionaries matchers
@@ -188,7 +181,7 @@ public class Context {
             try {
                 dl = new DictionariesLoader(new FileInputStream(priorityFileName));
             } catch (FileNotFoundException ex) {
-                throw new GimliException("There was a problem reading the dictionaries.", ex);
+                throw new NejiException("There was a problem reading the dictionaries.", ex);
             }
             dl.load(new File(dictionariesFolder), true);
             dictionariesTS = dl.getDictionaries();
@@ -200,23 +193,58 @@ public class Context {
             ArgParser ap = new ArgParser(new String[]{""});
             ap.addProperties("resources/lexicons/species/properties.conf");
             Matcher m = EntityTagger.getMatcher(ap, Loggers.getDefaultLogger(ap));
-            dictionariesTS.add(new Dictionary(m, Matching.EXACT, "SPEC"));
+            dictionariesTS.add(new Dictionary(m, "SPEC"));
         }
 
-        // Initilizase sentence splitters
+        // Initialize sentence splitters
         try {
             SentenceSplitter ss = new SentenceSplitter();
             sentencesplittersTS.put(ss);
         } catch (Exception ex) {
-            throw new GimliException("There was a problem loading the Sentence Splitters.", ex);
+            throw new NejiException("There was a problem loading the Sentence Splitters.", ex);
         }
 
         // Set initialized
         isInitialized = true;
     }
 
-    public void addMultiThreadingSupport(final int numThreads)
-            throws GimliException {
+
+    private ParserLevel getParserLevel(final List<MLModel> models) {
+        int[] counters = new int[4];
+        for (int i = 0; i < counters.length; i++) {
+            counters[i] = 0;
+        }
+
+        for (MLModel model : models) {
+            ModelConfig mc = model.getConfig();
+            if (mc.isLemma()) {
+                counters[0]++;
+            }
+            if (mc.isPos()) {
+                counters[1]++;
+            }
+            if (mc.isChunk()) {
+                counters[2]++;
+            }
+            if (mc.isNLP()) {
+                counters[3]++;
+            }
+        }
+
+        if (counters[3] > 0) {
+            return ParserLevel.DEPENDENCY;
+        } else if (counters[2] > 0) {
+            return ParserLevel.CHUNKING;
+        } else if (counters[1] > 0) {
+            return ParserLevel.POS;
+        } else if (counters[0] > 0) {
+            return ParserLevel.LEMMATIZATION;
+        } else {
+            return ParserLevel.TOKENIZATION;
+        }
+    }
+
+    public void addMultiThreadingSupport(final int numThreads) throws NejiException {
         if (!isInitialized) {
             throw new RuntimeException("Context must be initialized before "
                     + "adding multi-threading support.");
@@ -233,17 +261,17 @@ public class Context {
                 gp.launch();
                 parsersTS.put(gp);
             } catch (Exception ex) {
-                throw new GimliException("There was a problem loading the parsers.", ex);
+                throw new NejiException("There was a problem loading the parsers.", ex);
             }
         }
 
         // Models
         if (doModels) {
-            for (int i = 0; i < models.length; i++) {
+            for (MLModel model : modelsTS) {
                 try {
-                    models[i].addMultiThreadingSupport(numThreads);
+                    model.addMultiThreadingSupport(numThreads);
                 } catch (Exception ex) {
-                    throw new GimliException("There was a problem loading the CRF models.", ex);
+                    throw new NejiException("There was a problem loading the CRF models.", ex);
                 }
             }
         }
@@ -254,7 +282,7 @@ public class Context {
                 SentenceSplitter ss = new SentenceSplitter();
                 sentencesplittersTS.put(ss);
             } catch (Exception ex) {
-                throw new GimliException("There was a problem loading the Sentence Splitters.", ex);
+                throw new NejiException("There was a problem loading the Sentence Splitters.", ex);
             }
         }
 
@@ -262,22 +290,23 @@ public class Context {
         readyForMultiThreading = true;
     }
 
-    public void terminate() throws GimliException {
+    public void terminate() throws NejiException {
         // Finalize parsers
         while (!parsersTS.isEmpty()) {
             try {
                 parsersTS.take().terminate();
             } catch (InterruptedException ex) {
-                throw new GimliException("There was a problem terminating the parsers.", ex);
+                throw new NejiException("There was a problem terminating the parsers.", ex);
             }
         }
 
-        this.parsersTS = new LinkedBlockingQueue<Parser>();
-        this.dictionariesTS = new ArrayList<Dictionary>();
-        this.models = null;
+        this.parsersTS = new LinkedBlockingQueue<>();
+        this.dictionariesTS = new ArrayList<>();
+        this.modelsTS = new ArrayList<>();
 
 
         System.gc();
         isInitialized = false;
+        readyForMultiThreading = false;
     }
 }

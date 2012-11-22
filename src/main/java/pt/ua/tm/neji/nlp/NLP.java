@@ -1,19 +1,26 @@
 /*
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
+/*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
 package pt.ua.tm.neji.nlp;
 
 import com.aliasi.util.Pair;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import monq.jfa.AbstractFaAction;
-import monq.jfa.CompileDfaException;
-import monq.jfa.DfaRun;
-import monq.jfa.Nfa;
-import monq.jfa.ReSyntaxException;
-import monq.jfa.Xml;
+import monq.jfa.*;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.corpus.Corpus;
 import pt.ua.tm.gimli.corpus.Sentence;
@@ -21,13 +28,21 @@ import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.gimli.external.gdep.GDepCorpus;
 import pt.ua.tm.gimli.external.gdep.GDepSentence;
 import pt.ua.tm.gimli.external.wrapper.Parser;
-import pt.ua.tm.neji.core.Loader;
+import pt.ua.tm.neji.core.module.BaseLoader;
+import pt.ua.tm.neji.exception.NejiException;
+
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
+ * Module to perform Natural Language Processing, namely tokenization, lemmatization, POS tagging, chunking and
+ * dependency parsing.
  *
- * @author david
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
-public class NLP extends Loader {
+public class NLP extends BaseLoader {
 
     /**
      * {@link Logger} to be used in the class.
@@ -41,7 +56,7 @@ public class NLP extends Loader {
     private List<Pair> sentencesPositions;
     private boolean setSentencePositions;
 
-    public NLP(Corpus corpus, Parser parser, List<Pair> sentencesPositions) throws GimliException {
+    public NLP(Corpus corpus, Parser parser, List<Pair> sentencesPositions) throws NejiException {
         super(corpus);
         this.parser = parser;
         this.sentencesPositions = sentencesPositions;
@@ -51,11 +66,9 @@ public class NLP extends Loader {
             Nfa nfa = new Nfa(Nfa.NOTHING);
             nfa.or(Xml.STag("s"), start_sentence);
             nfa.or(Xml.ETag("s"), end_sentence);
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_COPY);
-        } catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_COPY);
         } catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            throw new NejiException(ex);
         }
 
         this.sentenceCounter = 0;
@@ -63,7 +76,7 @@ public class NLP extends Loader {
         this.startSentence = 0;
     }
 
-    public NLP(Corpus corpus, Parser parser) throws GimliException {
+    public NLP(Corpus corpus, Parser parser) throws NejiException {
         super(corpus);
         this.parser = parser;
         this.setSentencePositions = false;
@@ -72,11 +85,9 @@ public class NLP extends Loader {
             Nfa nfa = new Nfa(Nfa.NOTHING);
             nfa.or(Xml.STag("s"), start_sentence);
             nfa.or(Xml.ETag("s"), end_sentence);
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_COPY);
-        } catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_COPY);
         } catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            throw new NejiException(ex);
         }
 
         this.sentenceCounter = 0;
@@ -99,7 +110,7 @@ public class NLP extends Loader {
             try {
                 GDepSentence gs = new GDepSentence(gdep, parser.parse(sentence));
 
-                Sentence s = new Sentence(corpus, gs, sentence);
+                Sentence s = new Sentence(getCorpus(), gs, sentence);
 
                 if (setSentencePositions) {
                     //logger.info("{}", sentencesPositions);
@@ -108,7 +119,7 @@ public class NLP extends Loader {
                     s.setEndSource((Integer) p.b());
                 }
 
-                corpus.addSentence(s);
+                getCorpus().addSentence(s);
             } catch (GimliException ex) {
                 throw new RuntimeException("There was a problem parsing the sentence.", ex);
             }

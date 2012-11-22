@@ -1,27 +1,42 @@
+/*
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
 package pt.ua.tm.neji.entity;
 
-/*
- * To change this template, choose Tools | Templates and open the template in
- * the editor.
- */
-import java.util.List;
-import pt.ua.tm.neji.core.Loader;
 import monq.jfa.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.ua.tm.gimli.corpus.*;
-import pt.ua.tm.gimli.exception.GimliException;
-import pt.ua.tm.neji.global.Char;
+import pt.ua.tm.gimli.corpus.AnnotationID;
+import pt.ua.tm.gimli.corpus.Corpus;
+import pt.ua.tm.gimli.corpus.Identifier;
+import pt.ua.tm.gimli.corpus.Sentence;
+import pt.ua.tm.neji.core.module.BaseLoader;
+import pt.ua.tm.neji.exception.NejiException;
+import pt.ua.tm.neji.util.Char;
+
+import java.util.List;
 
 /**
- *
- * @author david
+ * Module to load entity annotations from the input stream to the internal {@link Corpus}.
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
-public class EntityLoader extends Loader {
+public class EntityLoader extends BaseLoader {
 
-    /**
-     * {@link Logger} to be used in the class.
-     */
+    /** {@link Logger} to be used in the class. */
     private static Logger logger = LoggerFactory.getLogger(EntityLoader.class);
     private int sentence;
     private boolean inSentence;
@@ -30,7 +45,7 @@ public class EntityLoader extends Loader {
     private int startSentence;
     private int previousNumChars;
 
-    public EntityLoader(Corpus corpus) throws GimliException {
+    public EntityLoader(Corpus corpus) throws NejiException {
         super(corpus);
 
         try {
@@ -39,11 +54,9 @@ public class EntityLoader extends Loader {
             nfa.or(Xml.ETag("s"), end_sentence);
             nfa.or(Xml.STag("e"), start_entity);
             nfa.or(Xml.ETag("e"), end_entity);
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_COPY);
-        } catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_COPY);
         } catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            throw new NejiException(ex);
         }
 
         this.sentence = 0;
@@ -53,6 +66,7 @@ public class EntityLoader extends Loader {
         this.startSentence = 0;
         this.previousNumChars = 0;
     }
+
     private AbstractFaAction start_sentence = new AbstractFaAction() {
 
         @Override
@@ -123,7 +137,7 @@ public class EntityLoader extends Loader {
                 //String entityType = id.substring(id.lastIndexOf(":") + 1);
                 //addAnnotation(corpus.getSentence(sentence), startEntityChars, endEntityChars, entityType, id);
 
-                Sentence s = corpus.getSentence(sentence);
+                Sentence s = getCorpus().getSentence(sentence);
                 AnnotationID a = AnnotationID.newAnnotationIDByCharPositions(s, startEntityChars, endEntityChars, 1.0);
 
                 if (a != null) {

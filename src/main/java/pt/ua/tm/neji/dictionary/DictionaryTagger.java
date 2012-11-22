@@ -1,29 +1,40 @@
+/*
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ */
 package pt.ua.tm.neji.dictionary;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
-import pt.ua.tm.neji.core.Tagger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
 import monq.jfa.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.config.Constants;
 import pt.ua.tm.gimli.config.Resources;
-import pt.ua.tm.gimli.exception.GimliException;
+import pt.ua.tm.neji.core.module.BaseTagger;
+import pt.ua.tm.neji.exception.NejiException;
 import uk.ac.man.entitytagger.Mention;
 import uk.ac.man.entitytagger.matching.Matcher;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 /**
- *
- * @author david
+ * Tagger module to perform dictionary matching and provide the concepts to the stream.
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
-public class DictionaryTagger extends Tagger {
+public class DictionaryTagger extends BaseTagger {
 
     /**
      * {@link Logger} to be used in the class.
@@ -39,27 +50,22 @@ public class DictionaryTagger extends Tagger {
     private int offset = start_e.length() + end_start_e.length()
             + end_e.length() + start_id.length() + end_id.length();
 
-    public DictionaryTagger(Matcher matcher) throws GimliException {
+    public DictionaryTagger(Matcher matcher) throws NejiException {
         super();
-        assert ( matcher != null );
+        assert (matcher != null);
         this.matcher = matcher;
 
         try {
             Nfa nfa = new Nfa(Nfa.NOTHING);
             nfa.or(Xml.STag("s"), start_sentence);
             nfa.or(Xml.ETag("s"), end_sentence);
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_COPY);
-        }
-        catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
-        }
-        catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_COPY);
+        } catch (ReSyntaxException ex) {
+            throw new NejiException(ex);
         }
         this.startSentence = 0;
     }
     private AbstractFaAction start_sentence = new AbstractFaAction() {
-
         @Override
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
             runner.collect = true;
@@ -67,7 +73,6 @@ public class DictionaryTagger extends Tagger {
         }
     };
     private AbstractFaAction end_sentence = new AbstractFaAction() {
-
         @Override
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
             StringBuffer sb = new StringBuffer(yytext.substring(startSentence, start));
@@ -124,15 +129,14 @@ public class DictionaryTagger extends Tagger {
             Pattern stopwords;
             try {
                 stopwords = Resources.getStopwordsPattern();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 logger.error("There was a problem loading the stopwords pattern matcher.", ex);
                 return;
             }
 
             // Add annotations
             for (Mention m : mentions) {
-                
+
                 // Discard stopwords recognition
                 java.util.regex.Matcher mather = stopwords.matcher(m.getText());
                 if (mather.matches()) {

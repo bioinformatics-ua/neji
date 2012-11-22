@@ -1,42 +1,57 @@
 /*
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
+/*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
 package pt.ua.tm.neji.writer;
 
 import com.google.gson.Gson;
-import java.util.ArrayList;
-import java.util.List;
 import monq.jfa.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.corpus.AnnotationID;
 import pt.ua.tm.gimli.corpus.Corpus;
 import pt.ua.tm.gimli.corpus.Sentence;
-import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.gimli.tree.TreeNode;
-import pt.ua.tm.neji.core.Tagger;
-import pt.ua.tm.neji.global.Char;
+import pt.ua.tm.neji.core.module.BaseWriter;
+import pt.ua.tm.neji.exception.NejiException;
 import pt.ua.tm.neji.writer.json.JSONEntry;
 import pt.ua.tm.neji.writer.json.JSONSentence;
 import pt.ua.tm.neji.writer.json.JSONTerm;
 
-/**
- *
- * @author david
- */
-public class JSONWriter extends Tagger {
+import java.util.ArrayList;
+import java.util.List;
 
-    /**
-     * {@link Logger} to be used in the class.
-     */
+/**
+ * Writer that provides information in JSON.
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
+ */
+public class JSONWriter extends BaseWriter {
+
+    /** {@link Logger} to be used in the class. */
     private static Logger logger = LoggerFactory.getLogger(JSONWriter.class);
     private Corpus corpus;
     private int sentenceCounter;
     private int offset;
     private List<JSONSentence> json;
 
-    public JSONWriter(final Corpus corpus) throws GimliException {
+    public JSONWriter(final Corpus corpus) throws NejiException {
         super();
         this.corpus = corpus;
         this.sentenceCounter = 0;
@@ -46,24 +61,21 @@ public class JSONWriter extends Tagger {
         try {
             Nfa nfa = new Nfa(Nfa.NOTHING);
             nfa.or(Xml.GoofedElement("s"), end_sentence);
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_COPY, eof);
-
-
-        } catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_COPY, eof);
         } catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            throw new NejiException(ex);
         }
     }
+
     private AbstractFaAction eof = new AbstractFaAction() {
         @Override
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
-            
-            
+
+
 //            Gson gson = new GsonBuilder().setPrettyPrinting().create();
 //            String jsonText = gson.toJson(json);
             String jsonText = new Gson().toJson(json);
-            
+
             yytext.replace(0, yytext.length(), jsonText);
             runner.collect = false;
         }
@@ -100,8 +112,8 @@ public class JSONWriter extends Tagger {
                     startChar, endChar - 1,
                     sentence);
 
-            getAnnotations(s, sentence, js, startChar);            
-            
+            getAnnotations(s, sentence, js, startChar);
+
             json.add(js);
 
             // Remove processed input from input
@@ -116,13 +128,14 @@ public class JSONWriter extends Tagger {
     };
 
     private void getAnnotations(Sentence s, String source, JSONSentence js, int offset) {
-        getAnnotations(s.getAnnotationsTree().getRoot(), source, js, 0, 0, 1, offset);
+        getAnnotations(s.getTree().getRoot(), source, js, 0, 0, 1, offset);
     }
 
-    private void getAnnotations(TreeNode<AnnotationID> node, String source, JSONEntry j, int level, int counter, int subcounter, int offset) {
+    private void getAnnotations(TreeNode<AnnotationID> node, String source, JSONEntry j, int level, int counter,
+                                int subcounter, int offset) {
 
         JSONEntry je;
-        
+
         if (level != 0) {
             // Add result to StringBuilder
 

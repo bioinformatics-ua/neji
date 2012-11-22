@@ -1,13 +1,19 @@
+/*
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ */
 package pt.ua.tm.neji.dictionary;
 
-/*
- * To change this template, choose Tools | Templates and open the template in
- * the editor.
- */
-import pt.ua.tm.neji.core.Loader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
 import monq.jfa.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,15 +22,24 @@ import pt.ua.tm.gimli.corpus.AnnotationID;
 import pt.ua.tm.gimli.corpus.Corpus;
 import pt.ua.tm.gimli.corpus.Identifier;
 import pt.ua.tm.gimli.corpus.Sentence;
-import pt.ua.tm.gimli.exception.GimliException;
-import pt.ua.tm.neji.global.Char;
+import pt.ua.tm.neji.core.module.BaseHybrid;
+import pt.ua.tm.neji.exception.NejiException;
+import pt.ua.tm.neji.util.Char;
 import uk.ac.man.entitytagger.Mention;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 /**
+ * Hybrid module to perform dictionary matching and load the resulting concepts into the internal {@link Corpus}
+ * representation.
  *
- * @author david
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
-public class DictionaryHybrid extends Loader {
+public class DictionaryHybrid extends BaseHybrid {
 
     /**
      * {@link Logger} to be used in the class.
@@ -34,7 +49,7 @@ public class DictionaryHybrid extends Loader {
     private int startSentence;
     private int sentence;
 
-    public DictionaryHybrid(Dictionary dictionary, Corpus corpus) throws GimliException {
+    public DictionaryHybrid(Dictionary dictionary, Corpus corpus) throws NejiException {
         super(corpus);
         assert (dictionary != null);
         this.dictionary = dictionary;
@@ -43,17 +58,14 @@ public class DictionaryHybrid extends Loader {
             Nfa nfa = new Nfa(Nfa.NOTHING);
             nfa.or(Xml.STag("s"), start_sentence);
             nfa.or(Xml.ETag("s"), end_sentence);
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_COPY);
-        } catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_COPY);
         } catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            throw new NejiException(ex);
         }
         this.startSentence = 0;
         this.sentence = 0;
     }
     private AbstractFaAction start_sentence = new AbstractFaAction() {
-
         @Override
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
             runner.collect = true;
@@ -61,7 +73,6 @@ public class DictionaryHybrid extends Loader {
         }
     };
     private AbstractFaAction end_sentence = new AbstractFaAction() {
-
         @Override
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
 
@@ -134,7 +145,7 @@ public class DictionaryHybrid extends Loader {
                 int endEntityChars = previousNumChars + numChars + Char.getNumNonWhiteSpaceChars(m.getText()) - 1;
 
                 String id = m.getIdsToString();
-                Sentence s = corpus.getSentence(sentence);
+                Sentence s = getCorpus().getSentence(sentence);
                 AnnotationID a = AnnotationID.newAnnotationIDByCharPositions(s, startEntityChars, endEntityChars, 1.0);
 
                 if (a != null) {

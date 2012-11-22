@@ -1,41 +1,57 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
+
 package pt.ua.tm.neji.disambiguator;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.ua.tm.gimli.corpus.*;
+import pt.ua.tm.gimli.corpus.AnnotationID;
 import pt.ua.tm.gimli.corpus.AnnotationID.AnnotationType;
+import pt.ua.tm.gimli.corpus.Corpus;
+import pt.ua.tm.gimli.corpus.Identifier;
+import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.tree.Tree;
 import pt.ua.tm.gimli.tree.TreeNode;
-import pt.ua.tm.neji.global.Char;
+import pt.ua.tm.neji.util.Char;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- *
- * @author david
+ * Remove ambiguity between concepts in the concept tree, following provided rules.
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
 public class Disambiguator {
 
-    /**
-     * {@link Logger} to be used in the class.
-     */
+    /** {@link Logger} to be used in the class. */
     private static Logger logger = LoggerFactory.getLogger(Disambiguator.class);
 
-    public static void disambiguate(Corpus c, int level, boolean mergeNestedSameGroup, boolean discardSameGroupByPriority) {
+    public static void disambiguate(Corpus c, int level, boolean mergeNestedSameGroup,
+                                    boolean discardSameGroupByPriority) {
         for (Sentence s : c.getSentences()) {
             disambiguate(s, level, mergeNestedSameGroup, discardSameGroupByPriority);
         }
     }
 
-    public static void disambiguate(Sentence s, int level, boolean mergeNestedSameGroup, boolean discardSameIdDifferentSubGroup) {
-        assert (level > 0);
+    public static void disambiguate(Sentence s, int depth, boolean mergeNestedSameGroup,
+                                    boolean discardSameIdDifferentSubGroup) {
+        assert (depth > 0);
 
-        List<TreeNode<AnnotationID>> nodes = s.getAnnotationsTree().build(level);
+        List<TreeNode<AnnotationID>> nodes = s.getTree().build(depth);
 
         for (TreeNode<AnnotationID> node : nodes) {
             AnnotationID data = node.getData();
@@ -92,13 +108,13 @@ public class Disambiguator {
         }
 
         // Final cleaning
-        nodes = s.getAnnotationsTree().build(Tree.TreeTraversalOrderEnum.PRE_ORDER);
+        nodes = s.getTree().build(Tree.TreeTraversalOrderEnum.PRE_ORDER);
         for (TreeNode<AnnotationID> node : nodes) {
             AnnotationID data = node.getData();
             // Remove equal IDs from the same subgroup by priority
             if (discardSameIdDifferentSubGroup) {
                 List<Identifier> ids = data.getIDs();
-                List<Identifier> toRemove = new ArrayList<Identifier>();
+                List<Identifier> toRemove = new ArrayList<>();
 
                 for (int i = ids.size() - 1; i >= 0; i--) {
 

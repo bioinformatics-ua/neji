@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2012 David Campos, University of Aveiro.
+  ~
+  ~ Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+  ~
+  ~ This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+  ~ To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+  ~
+  ~ This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+  ~ it for commercial purposes.
+  ~
+  ~ It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  -->
+
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Neji</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/font-awesome.css">
+        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/main.css">
+
+        
+        <link rel="stylesheet" href="css/sunburst.css">
+
+        <!-- SH -->
+        <!-- <link rel="stylesheet" href="css/sh/shCore.css">
+        <link rel="stylesheet" href="css/sh/shThemeDefault.css">
+        <link rel="stylesheet" href="css/sh/shThemeFadeToGrey.css"> -->
+
+
+        <script src="js/vendor/modernizr-2.6.1-respond-1.1.0.min.js"></script>
+    </head>
+<body onload="prettyPrint(); adjustHeightInParent()" data-spy="scroll" data-target=".side-bar" data-twttr-rendered="true">
+
+  <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
+        <![endif]-->
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner navbar-inner-neji">
+        <div class="brand brand-neji">
+          <a href="index.html">
+            <div class="lettering-small pull-left">neji</div>
+            <i class="icon-pencil pencil-small pull-left"></i>
+          </a>
+        </div>
+      <ul class="nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li class="active"><a href="#">Get started</a></li>
+        <li class="dropdown">
+          <a href="#" id="documentation-drop" role="button" class="dropdown-toggle" data-toggle="dropdown">Documentation <b class="caret"></b></a>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="documentation-drop">
+            <li><a tabindex="-1" href="apidocs/index.html" target="_blank">Javadoc</a></li>
+            <li><a tabindex="-1" href="#" rel="tooltip" data-placement="bottom" data-original-title="Coming soon.">Tutorial</a></li>
+          </ul>
+        </li>
+      </ul>
+      <ul class="nav pull-right">
+        <li><a data-toggle="modal" href="#team">Team</a></li>
+        <li><a data-toggle="modal" href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="team" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="team" aria-hidden="true">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3>Team</h3>
+              </div>
+              <div class="modal-body" style="overflow-y:visible">
+                <div class="alert alert-block gray">
+                  <div style="width:560px" class="row">          
+                    <div class="span1">
+                      <img src="img/dc.jpg" width="65px" class="img-polaroid">
+                    </div>          
+                    <div class="span4 team-person-base">
+                      <span class="label label-important team-person">David Campos</span>
+                      <span class="label label-inverse team-person-role">developer</span>
+                      <span class="label label-inverse team-person-role">project leader</span>
+                      <p class="team-person-role-description">Leads the framework development and planning.</p>
+                      <span class="badge pull-right team-person-mail"><a href="mailto:david.campos@ua.pt">david.campos at ua.pt</a></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="alert alert-block gray">
+                  <div style="width:560px" class="row">          
+                    <div class="span1">
+                      <img src="img/sm.jpg" width="65px" class="img-polaroid">
+                    </div>          
+                    <div class="span4 team-person-base">
+                      <span class="label label-important team-person">Sérgio Matos</span>
+                      <span class="label label-inverse team-person-role">team leader</span>
+                      <p class="team-person-role-description">Leads the project direction and team.</p>
+                      <span class="badge pull-right team-person-mail"><a href="mailto:aleixomatos@ua.pt">aleixomatos at ua.pt</a></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="alert alert-block gray">
+                  <div style="width:560px" class="row">          
+                    <div class="span1">
+                      <img src="img/jlo.jpg" width="65px" class="img-polaroid">
+                    </div>          
+                    <div class="span4 team-person-base">
+                      <span class="label label-important team-person">José Luís Oliveira</span>
+                      <span class="label label-inverse team-person-role">group leader</span>
+                      <p class="team-person-role-description">Drives the project direction and coordinates the whole team.</p>
+                      <span class="badge pull-right team-person-mail"><a href="mailto:jlo@ua.pt">jlo at ua.pt</a></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+    <!-- <div class="modal-footer">
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    </div> -->
+            </div>
+
+
+          <div id="contact" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="contact" aria-hidden="true">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3>Contact</h3>
+              </div>
+              <div class="modal-body" style="overflow-y:visible">
+                <div class="alert alert-block alert-error">
+                  <h4>Give us your feedback!</h4>
+                  <p>We are glad to know your opinion and suggestions. Contact our team and tell us about your experience with Neji.</p>
+                </div>
+                <div class="alert alert-block gray contact-information">
+                  <div class="row"><div class="span5"><b>David Campos</b></div></div>
+                  <div class="row"><div class="span5">Instituto de Engenharia Electrónica e Telemática de Aveiro</div></div>
+                  <div class="row"><div class="span5">Campus Universitário de Santiago</div></div>
+                  <div class="row"><div class="span5">3810-193 Aveiro - Portugal</div></div>
+                  <div class="row">
+                    <div class="span5">
+                      <i style="font-size:1.1em;" class="icon-phone"></i> <b>+351 234 370 500</b>
+                      <i style="font-size:1.1em; padding-left:25px;" class="icon-print"></i> <b>+351 234 370 545</b>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-danger contact-mail" aria-hidden="true"><a href="mailto:david.campos@ua.pt?subject=[Neji]">Send e-mail</a></button>
+              </div>
+            </div>
+  
+  <div id="page-header">
+    <div class="container">
+      <div class="row">
+        <div id="page-header-title" class="span12">Get started</div>
+        <div id="page-header-subtitle" class="span12">Quickly start using Neji on your project.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="container">
+    <div class="row">
+      <div class="span3 side-bar">
+        <ul class="nav nav-list bs-docs-sidenav affix-top" data-spy="affix" data-offset-top="190">
+          <li class="active"><a href="#download"><i class="icon-chevron-right"></i>Download</a></li>
+          <li class=""><a href="#install"><i class="icon-chevron-right"></i>Install</a></li>
+          <li class=""><a href="#use"><i class="icon-chevron-right"></i>Use</a></li>
+          <li class=""><a href="#example"><i class="icon-chevron-right"></i>Example</a></li>
+          <li class=""><a href="#resources"><i class="icon-chevron-right"></i>Resources</a></li>
+          <li class=""><a href="#coding"><i class="icon-chevron-right"></i>Coding</a></li>
+          <li class=""><a href="#next"><i class="icon-chevron-right"></i>What next?</a></li>
+        </ul>
+      </div>
+      <div class="span9">
+        <section id="download">
+          <div class="page-header">
+            <h1>Download</h1>
+          </div>
+
+          <h3>Tool and framework</h3>
+          <b>The fastest way to start.</b> Contains the framework, tool and GDep.
+          <p></p>
+          <p class="horizontal-center"><a href="" class="btn btn-danger btn-large"><b>Download Neji</b></a></p>
+
+          <p style="padding:10px;"></p>
+          You can also download the source code and build the project using <a href="http://maven.apache.org">Apache Maven</a>.
+          <p></p>
+          <p class="horizontal-center"><a href="#" class="btn btn-large"><b>Download Neji source code</b></a>
+          <a class="btn btn-large" href="#"><i class="icon-github"></i> Go to GitHub Project</a></p>
+
+
+          <h3>Maven dependency</h3>
+          If you use <a href="http://maven.apache.org">Apache Maven</a>, you can easily add the Neji repository and artifact dependencies: 
+          <h5>Repository:</h5>
+          <pre class="prettyprint linenums prettyprinted">
+&lt;repository&gt;
+  &lt;id&gt;bioinformatics-all&lt;/id&gt;
+  &lt;name&gt;Public Bioinformatics Repository&lt;/name&gt;
+  &lt;url&gt;http://bioinformatics.ua.pt/maven/content/groups/public&lt;/url&gt;
+&lt;/repository&gt;</pre>
+
+          <h5>Artifact:</h5>
+          <pre class="prettyprint linenums prettyprinted">
+&lt;dependency&gt;
+  &lt;groupId&gt;pt.ua.tm&lt;/groupId&gt;
+  &lt;artifactId&gt;neji&lt;/artifactId&gt;
+  &lt;version&gt;1.0&lt;/version&gt;
+&lt;/dependency&gt;</pre>
+          
+
+          <h3>GDep</h3>
+          You can download our custom version of <a href="http://people.ict.usc.edu/~sagae/parser/gdep/" target="_blank">GDep</a>, which is more flexible and consequently more fast for specific tasks.
+          <p></p>
+          <p class="horizontal-center"><a href="#" class="btn btn-large">Download custom GDep</a></p>
+        </section>
+
+        <section id="install">
+          <div class="page-header">
+            <h1>Install</h1>
+          </div>
+
+          <h3>Requirements</h3>
+            <ul>
+              <li>Operating System (OS)</li>
+              <ul>
+                <li>Linux</li>
+                <li>Mac OS</li>
+              </ul>
+              <li>Java 7 or later</li>
+            </ul>
+
+          <h3>Installation</h3>
+          <ol>
+            <li>Extract the downloaded zip file</li>
+            <li>Open a terminal</li>
+            <li>Go to Neji root folder</li>
+            <li>Give the right execution permissions to the Neji executable:
+                <pre class="prettyprint linenums prettyprinted">chmod u+x neji.sh</pre>
+            </li>
+          </ol>
+        </section>
+
+        <section id="use">
+          <div class="page-header">
+            <h1>Use</h1>
+          </div>
+
+          <div class="lead">This entry explains how to use the provided tool. For detailed framework documentation, please visit the <a href="#" rel="tooltip" data-placement="bottom" data-original-title="Coming soon.">tutorial</a>.</div>
+
+          <h3>Usage</h3>
+          Using the tool provided with Neji is quite simple:
+          <ul>
+            <li>Open a terminal</li>
+            <li>Go to the root folder of Neji</li>
+            <li>Type: <pre class="prettyprint linenums prettyprinted">./neji.sh</pre></li>
+            <li>Usage and self-explanatory information is provided:
+                <p></p>
+                <img src="img/usage.png" class="img-rounded">
+            </li>
+          </ul>
+        </section>
+
+        <section id="example">
+          <div class="page-header">
+            <h1>Example</h1>
+          </div>
+          Neji is distributed with an example, which is provided in the "example" folder. The following resources are provided:
+          <ul>
+            <li><b>Corpus:</b> a set of 10 abstracts from  <a href="http://www.ncbi.nlm.nih.gov/pubmed" target="_blank">MEDLINE</a>;</li>
+            <li><b>Dictionaries:</b> two small dictionaries: one for disorders and another for anatomy;</li>
+            <li><b>Machine Learning (ML) model:</b> one machine learning model for gene and protein names, including preferred and synonym dictionaries for normalization.</li>
+          </ul>
+          
+          <p>To annotate the corpus using both dictionaries and ML models, execute the following command:</p>
+          <pre class="prettyprint linenums prettyprinted lang">
+            ./neji.sh -i example/corpus/in/ -if RAW 
+                      -o example/corpus/out/ -of NEJI 
+                      -d example/dictionaries/ 
+                      -m example/models/ 
+                      -t 4 </pre>
+
+          <p>If you prefer to not use the ML model, remove the associated option:</p>
+          <pre class="prettyprint linenums prettyprinted lang-html">
+            ./neji.sh -i example/corpus/in/ -if RAW 
+                      -o example/corpus/out/ -of NEJI 
+                      -d example/dictionaries/ 
+                      -t 4 </pre>
+
+          <p>If you want to use only the concepts provided by the ML, remove the dictionary option:</p>
+          <pre class="prettyprint linenums prettyprinted lang-html">
+            ./neji.sh -i example/corpus/in/ -if RAW 
+                      -o example/corpus/out/ -of NEJI 
+                      -m example/models/ 
+                      -t 4  </pre>
+
+          
+        </section>
+
+        <section id="resources">
+          <div class="page-header">
+            <h1>Resources</h1>
+          </div>
+          <div class="lead">You can explore the provided example to understand how dictionaries and machine learning models should be provided.</div>
+
+
+          <h3>Dictionaries</h3>
+          Dictionaries must be provided following the TSV format, where each line is composed by two values:
+          <ul>
+            <li><b>1st:</b> Identifier that contains 4 fields concatenated with a ":" 
+              &lt;source&gt;:&lt;id&gt;:&lt;type&gt;:&lt;group&gt;;
+
+              </li>
+            <li><b>2nd:</b> Names concatenated with a "|".</li>
+
+          </ul>
+          <pre class="prettyprint linenums prettyprinted lang-html">
+            UMLS:C0001327:T047:DISO acute laryngitis|acute laryngitis nos
+            UMLS:C0001339:T047:DISO acute pancreatitis|pancreatitis, acute
+            UMLS:C0001344:T047:DISO pharyngitis nos acute|acute pharyngitis|pharyngitis acute
+            UMLS:C0001360:T047:DISO acute thyroiditis|thyroiditis acute </pre> 
+
+          <p>To specify the dictionaries priority, which may be used for disambiguation procedures, a file must be provided, with one dictionary file name per line:</p>
+          <pre class="prettyprint linenums prettyprinted lang-html">
+            jochem_CHED.tsv
+            Congenital_Abnormality_T019_DISO.tsv
+            Acquired_Abnormality_T020_DISO.tsv
+            Anatomical_Abnormality_T190_DISO.tsv
+            Sign_or_Symptom_T184_DISO.tsv
+            Cell_or_Molecular_Dysfunction_T049_DISO.tsv
+            Neoplastic_Process_T191_DISO.tsv
+            Mental_or_Behavioral_Dysfunction_T048_DISO.tsv
+            Disease_or_Syndrome_T047_DISO.tsv
+            Pathologic_Function_T046_DISO.tsv
+            Molecular_Function_FUNC.tsv
+            Biological_Process_PROC.tsv </pre>
+
+          <p>Such priority file should have the name "_priority" and be located in the same folder of the dictionaries:</p>
+          <div class="horizontal-center">
+            <img src="img/dictionaries-folder.png" class="img-rounded">
+          </div>
+
+          <h3>Models</h3>
+          Each model is described using a properties file, defining the following characteristics:
+          <ul>
+            <li><b>File</b>: compressed file that contains the model;</li>
+            <li><b>Config</b>: file that contains features configuration of the model. Please visit <a href="http://bioinformatics.ua.pt/support/gimli/doc/index.html#model" target="_blank">Gimli documentation</a> to know more details;</li>
+            <li><b>Parsing</b>: text parsing direction used to train the model;</li>
+            <li><b>Group</b>: semantic group of the annotations generated by the model;</li>
+            <li><b>Normalization dictionaries</b>: if normalization is required, provide the folder with the dictionaries, following the same approach previously described for dictionaries. If no normalization is required, this field should not be provided.</li>
+          </ul>
+
+          <p>A model properties file should look like this (provided paths to files and folders are relative):</p>
+          <pre class="prettyprint linenums prettyprinted lang-html">
+            file=all_bc2_bw_o2_windows_ndp.gz
+            config=bc2.config
+            parsing=BW
+            group=PRGE
+            dictionaries=../../lexicons/prge/</pre>
+          
+
+          <p>Just like dictionaries, models are also provided using a priority file, where each line is a properties file for each model:</p>
+          <pre class="prettyprint linenums prettyprinted lang-html">
+            prge/prge.properties </pre>
+
+          <p>Models and its configuration files can be organized as follows:</p>
+          <div class="horizontal-center">
+            <img src="img/models-folder.png" class="img-rounded">
+          </div>
+
+        </section>
+
+
+        <section id="coding">
+          <div class="page-header">
+            <h1>Coding</h1>
+
+            <div class="lead"> Is simple to make a processing pipeline to perform batch and multi-threaded processing.</div>
+
+            If users do not want to take advantage of the CLI tool provided, it is also straightforward to develop a pipeline processor and process the documents using the batch helper. First, a processor taking advantage of the pipeline features must be implemented. The next snippet shows the construction of a complete pipeline processor that produces the same results as the previous bash command (input in Raw format and output in Neji format), considering a specific context, input and output documents provided in the constructor.
+
+            <pre class="prettyprint linenums prettyprinted">
+public class ExampleProcessor extends BaseProcessor {
+  …
+  @Override
+  public void run() {
+    ContextProcessors cp = context.take(); //Take parser, sentence splitter and CRF
+    Corpus corpus = getInputCorpus().getCorpus(); //Get corpus to store processed data
+    Pipeline p = new DefaultPipeline(); //Create pipeline
+    p.add(new RawReader()); //Reader
+    p.add(new SentenceTagger(cp.getSentenceSplitter())); //Sentence tagger
+    p.add(new NLP(corpus, cp.getParser())); //NLP
+    for (Dictionary d : context.getDictionaries()) { //Dictionary matching
+      p.add(new DictionaryHybrid(d, corpus));
+    }
+    for (int i = 0; i &lt; context.getModels().size(); i++) { //Machine learning
+      p.add(new MLHybrid(corpus, context.getModels().get(i), cp.getCRF(i)));
+    }
+    p.add(new NejiWriter(corpus)); //Writer
+    p.run(getInputCorpus().getInStream(), getOutputCorpus().getOutStream()); //Run pipeline
+    context.put(cp); //Put parser, sentence splitter and CRF back
+  }
+}            </pre>
+
+            Afterwards, you should use this pipeline processor to perform batch processing of documents available in a folder. The next snippet shows how a context is created considering input models and dictionaries folders, and how a batch is created for specific input and output folders. Finally, the batch is executed considering the provided context and all documents are annotated.
+            <pre class="prettyprint linenums prettyprinted">
+Context context = new Context(modelsFolder, dictionariesFolder); //Create context
+boolean areFilesCompressed = true;
+int numThreads = 4;
+Batch batch = new FileBatchExecutor(inputFolder, InputFormat.RAW, outputFolder, OutputFormat.NEJI,
+                                    areFilesCompressed, numThreads); //Create batch
+Class c = ExampleProcessor.class; //Get Processor class
+batch.run(c, context); //Run batch processing</pre>
+
+          </div>
+
+        <section id="next">
+          <div class="page-header">
+            <h1>What Next?</h1>
+          </div>
+          
+          <div class="lead">
+            <p>You can integrate the tool on your processing workflows, or you can start developing your own processing pipelines using Neji.</p>
+            <p>Please visit the tutorial for detailed documentation on modules and pipelines development.</p>
+          </div>
+
+          <p><a href="#" class="btn btn-danger btn-large" rel="tooltip" data-placement="bottom" data-original-title="Coming soon."><b>Go to Tutorial</b></a></p>
+
+        </section>
+        
+      </div>
+    </div>
+
+    
+
+
+  </div>
+    <!-- /container -->
+
+  <footer class="footer-neji">
+    <div class="container">
+      <div class="row">
+        <div class="span12">
+          <a class="footer-logo" href="http://bioinformatics.ua.pt" target="_blank"><img src="img/bioinformatics.png" title="Go to Bioinformatics.ua.pt's Website"></a>
+          <a class="footer-logo" href="http://www.ieeta.pt" target="_blank"><img src="img/ieeta.png" title="Go to IEETA's Website"></a>
+          <a class="footer-logo" href="http://www.ua.pt" target="_blank"><img src="img/ua.png" title="Go to UA's Website"></a>
+          <a class="footer-logo" href="http://www.pofc.qren.pt" target="_blank"><img src="img/compete.png" title="Go to Compete's Website"></a>
+          <a class="footer-logo" href="http://www.qren.pt" target="_blank"><img src="img/qren.png" title="Go to QREN's Website"></a>
+          <a class="footer-logo" href="http://europa.eu" target="_blank"><img src="img/ue.png" title="Go to UE's Website"></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+        <!-- SH -->
+        <!-- <script src="js/sh/shCore.js"></script>
+        <script src="js/sh/shBrushXml.js"></script>
+        <script src="js/sh/shBrushBash.js"></script>
+        <script src="js/sh/shBrushPlain.js"></script>
+        <script src="js/sh/shBrushJava.js"></script> -->
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+        
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.1.min.js"><\/script>')</script>
+
+        <script src="js/vendor/bootstrap.min.js"></script>        
+
+        <script src="js/main.js"></script>
+
+        <script src="js/prettify.js"></script>
+
+        <script>
+            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+            s.parentNode.insertBefore(g,s)}(document,'script'));
+            
+            $("[rel=tooltip]").tooltip();
+
+            SyntaxHighlighter.all();
+        </script>
+  </body>
+  </html>

@@ -1,48 +1,45 @@
 /*
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
+/*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
 package pt.ua.tm.neji.test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 import monq.ie.Term2Re;
-import monq.jfa.AbstractFaAction;
-import monq.jfa.ByteCharSource;
-import monq.jfa.CompileDfaException;
-import monq.jfa.DfaRun;
-import monq.jfa.Nfa;
-import monq.jfa.ReSyntaxException;
-import monq.jfa.Xml;
+import monq.jfa.*;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.ua.tm.gimli.exception.GimliException;
-import pt.ua.tm.neji.core.Module;
+import pt.ua.tm.gimli.corpus.Corpus;
+import pt.ua.tm.neji.core.module.BaseLoader;
+import pt.ua.tm.neji.exception.NejiException;
 
-/**
- *
- * @author david
- */
-public class LexEBIReader extends Module {
+import java.io.*;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
 
-    /**
-     * {@link Logger} to be used in the class.
-     */
+/** @author david */
+public class LexEBIReader extends BaseLoader {
+
+    /** {@link Logger} to be used in the class. */
     private static Logger logger = LoggerFactory.getLogger(LexEBIReader.class);
     private Map<String, List<String>> preferred;
     private Map<String, List<String>> synonyms;
+    private Map<String, String> map;
     private List<String> preferredNames, synonymsNames;
     private boolean inEntry;
     private long numEntries, numNames, numVariants, numUP;
@@ -72,7 +69,8 @@ public class LexEBIReader extends Module {
         return synonyms;
     }
 
-    public LexEBIReader() throws GimliException {
+    public LexEBIReader(final Corpus corpus) throws NejiException {
+        super(corpus);
         this.preferred = new HashMap<String, List<String>>();
         this.synonyms = new HashMap<String, List<String>>();
         this.preferredNames = new ArrayList<String>();
@@ -84,6 +82,7 @@ public class LexEBIReader extends Module {
         numNames = 0;
         numVariants = 0;
         numUP = 0;
+        this.map = new HashMap<>();
 
         try {
             Nfa nfa = new Nfa(Nfa.NOTHING);
@@ -97,13 +96,12 @@ public class LexEBIReader extends Module {
 
             nfa.or(Xml.EmptyElemTag("DC"), species);
 
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_DROP);
-        } catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_DROP);
         } catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            throw new NejiException(ex);
         }
     }
+
     private AbstractFaAction start_entry = new AbstractFaAction() {
         @Override
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
@@ -211,20 +209,6 @@ public class LexEBIReader extends Module {
         }
     };
 
-    public void process(InputStream in) throws GimliException {
-        assert (dfa != null);
-        assert (in != null);
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            DfaRun run = new DfaRun(dfa);
-            run.setIn(new ByteCharSource(in));
-            run.filter();
-        } catch (IOException ex) {
-            throw new GimliException("There was a problem writing the result.", ex);
-        }
-    }
-
     public static void main(String[] args) {
 
         String fileIn = "/Users/david/Downloads/geneProt70.xml.gz";
@@ -235,11 +219,13 @@ public class LexEBIReader extends Module {
 
         try {
 
+            Corpus corpus = new Corpus();
+
             FileOutputStream preferred = new FileOutputStream(outPreferred);
             FileOutputStream synonyms = new FileOutputStream(outSynonyms);
             FileOutputStream preferredRegex = new FileOutputStream(outPreferredRegex);
             FileOutputStream synonymsRegex = new FileOutputStream(outSynonymsRegex);
-            LexEBIReader reader = new LexEBIReader();
+            LexEBIReader reader = new LexEBIReader(corpus);
 
             logger.info("Collecting dictionary data from file...");
             reader.process(new GZIPInputStream(new FileInputStream(fileIn)));
@@ -255,25 +241,24 @@ public class LexEBIReader extends Module {
             writeToFile(reader.getPreferred(), preferredRegex, true);
             writeToFile(reader.getSynonyms(), synonymsRegex, true);
 
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (GimliException ex) {
+        } catch (IOException | NejiException ex) {
             ex.printStackTrace();
         }
 
     }
 
-    private static void writeToFile(Map<String, List<String>> dict, OutputStream out, boolean useRegex) throws IOException {
+    private static void writeToFile(Map<String, List<String>> dict, OutputStream out, boolean useRegex)
+            throws IOException {
         Iterator<String> it = dict.keySet().iterator();
         while (it.hasNext()) {
             String id = it.next();
 
             List<String> names = dict.get(id);
-            
+
             if (useRegex) {
                 names = getRegexNames(names);
             }
-            
+
             String toWrite = entryToTSV(id, names);
 
             if (toWrite != null) {
@@ -283,14 +268,14 @@ public class LexEBIReader extends Module {
         out.close();
     }
 
-    private static List<String> getRegexNames(List<String> names) {
+    public static List<String> getRegexNames(List<String> names) {
         List<String> regexNames = new ArrayList<String>();
 
         for (String name : names) {
-            
+
             String regex = Term2Re.convert(name);
             regex = "(" + regex + ")";
-            
+
             regex = regex.replaceAll("\\{", "\\\\{");
             regex = regex.replaceAll("\\}", "\\\\}");
 

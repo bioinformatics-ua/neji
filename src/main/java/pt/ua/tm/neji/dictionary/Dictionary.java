@@ -1,53 +1,75 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
+
 package pt.ua.tm.neji.dictionary;
 
 import uk.ac.man.entitytagger.matching.Matcher;
 
 /**
- *
- * @author david
+ * Internal representation of a dictionary.
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
 public class Dictionary {
-
-    public static enum Matching {
-      REGEX,
-      EXACT
-    };
-    
     private Matcher matcher;
     private String group;
-    private Matching matching;
 
-    public Dictionary(Matcher matcher, Matching matching, String group) {
+    /**
+     * Dictionary constructor.
+     * @param matcher Value of matcher.
+     * @param group Value of group.
+     */
+    public Dictionary(Matcher matcher, String group) {
         this.group = group;
-        this.matching = matching;
         this.matcher = matcher;
     }
 
+    /**
+     * Gets group.
+     *
+     * @return Value of group.
+     */
     public String getGroup() {
         return group;
     }
 
+    /**
+     * Sets new group.
+     *
+     * @param group New value of group.
+     */
     public void setGroup(String group) {
         this.group = group;
     }
 
-    public Matcher getMatcher() {
-        return matcher;
-    }
-
+    /**
+     * Sets new matcher.
+     *
+     * @param matcher New value of matcher.
+     */
     public void setMatcher(Matcher matcher) {
         this.matcher = matcher;
     }
 
-    public Matching getMatching() {
-        return matching;
-    }
-
-    public void setMatching(Matching matching) {
-        this.matching = matching;
+    /**
+     * Gets matcher.
+     *
+     * @return Value of matcher.
+     */
+    public Matcher getMatcher() {
+        return matcher;
     }
 }

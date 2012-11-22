@@ -1,25 +1,19 @@
-package pt.ua.tm.neji.statistics;
-
 /*
- * Gimli - High-performance and multi-corpus recognition of biomedical
- * entity names
+ * Copyright (c) 2012 David Campos, University of Aveiro.
  *
- * Copyright (C) 2011 David Campos, Universidade de Aveiro, Instituto de
- * Engenharia Electrónica e Telemática de Aveiro
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
  *
- * Gimli is licensed under the Creative Commons
- * Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a copy of
- * this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
  *
- * Gimli is a free software, you are free to copy, distribute, change and
- * transmit it. However, you may not use Gimli for commercial purposes.
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
  *
- * Gimli is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.
- *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 
+package pt.ua.tm.neji.statistics;
 
 import java.io.Serializable;
 import java.util.Comparator;

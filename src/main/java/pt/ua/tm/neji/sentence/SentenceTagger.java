@@ -1,27 +1,40 @@
+/*
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
 package pt.ua.tm.neji.sentence;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 import com.aliasi.util.Pair;
-import java.util.List;
-import pt.ua.tm.neji.core.Tagger;
 import monq.jfa.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.exception.GimliException;
+import pt.ua.tm.neji.core.module.BaseTagger;
+import pt.ua.tm.neji.exception.NejiException;
 import pt.ua.tm.neji.sentencesplitter.SentenceSplitter;
 
-/**
- *
- * @author david
- */
-public class SentenceTagger extends Tagger {
+import java.util.List;
 
-    /**
-     * {@link Logger} to be used in the class.
-     */
+/**
+ * Module to perform sentence splitting and tagging.
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
+ */
+public class SentenceTagger extends BaseTagger {
+
+    /** {@link Logger} to be used in the class. */
     private Logger logger = LoggerFactory.getLogger(SentenceTagger.class);
     private int startText;
     private int startTag;
@@ -37,7 +50,7 @@ public class SentenceTagger extends Tagger {
      * @param xmlTags Tags to extract content to be used.
      * @throws GimliException Problem loading the sentence tagger.
      */
-    public SentenceTagger(final SentenceSplitter sentencesplitter) throws GimliException {
+    public SentenceTagger(final SentenceSplitter sentencesplitter) throws NejiException {
         super();
 
         this.sentencesplitter = sentencesplitter;
@@ -48,11 +61,9 @@ public class SentenceTagger extends Tagger {
             Nfa nfa = new Nfa(Nfa.NOTHING);
             nfa.or(Xml.STag("roi"), start_text);
             nfa.or(Xml.ETag("roi"), end_text);
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_COPY);
-        } catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_COPY);
         } catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            throw new NejiException(ex);
         }
         startText = 0;
         startTag = 0;
@@ -66,7 +77,8 @@ public class SentenceTagger extends Tagger {
      * @param xmlTags Tags to extract content to be used.
      * @throws GimliException Problem loading the sentence tagger.
      */
-    public SentenceTagger(final SentenceSplitter sentencesplitter, List<Pair> sentencesPositions) throws GimliException {
+    public SentenceTagger(final SentenceSplitter sentencesplitter, List<Pair> sentencesPositions)
+            throws NejiException {
         super();
 
         this.sentencesplitter = sentencesplitter;
@@ -78,17 +90,16 @@ public class SentenceTagger extends Tagger {
             Nfa nfa = new Nfa(Nfa.NOTHING);
             nfa.or(Xml.STag("roi"), start_text);
             nfa.or(Xml.ETag("roi"), end_text);
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_COPY);
-        } catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_COPY);
         } catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            throw new NejiException(ex);
         }
         startText = 0;
         startTag = 0;
         sentenceCounter = 0;
         inText = false;
     }
+
     private AbstractFaAction start_text = new AbstractFaAction() {
         @Override
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
@@ -103,7 +114,7 @@ public class SentenceTagger extends Tagger {
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
             if (inText) {
                 StringBuffer sb = new StringBuffer(yytext.substring(startText, start));
-                
+
                 int[][] indices = sentencesplitter.split(sb.toString());
 
                 int offset = 0;

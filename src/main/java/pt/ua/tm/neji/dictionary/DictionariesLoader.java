@@ -1,29 +1,40 @@
+/*
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ */
 package pt.ua.tm.neji.dictionary;
 
-/*
- * To change this template, choose Tools | Templates and open the template in
- * the editor.
- */
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
 import martin.common.ArgParser;
 import martin.common.Loggers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.config.Constants;
-import pt.ua.tm.gimli.exception.GimliException;
-import pt.ua.tm.neji.dictionary.Dictionary.Matching;
+import pt.ua.tm.neji.exception.NejiException;
 import uk.ac.man.entitytagger.EntityTagger;
 import uk.ac.man.entitytagger.matching.Matcher;
-import uk.ac.man.entitytagger.matching.matchers.ACIDMatcher;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 /**
+ * Helper to load dictionaries.
  *
- * @author david
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
 public class DictionariesLoader {
 
@@ -32,24 +43,21 @@ public class DictionariesLoader {
      */
     private static Logger logger = LoggerFactory.getLogger(DictionariesLoader.class);
     private List<String> priority;
-    private List<Matching> matchings;
     private List<Dictionary> dictionaries;
 
-    public DictionariesLoader(List<String> priority, List<Matching> matchings) {
+    public DictionariesLoader(List<String> priority) {
         assert (priority != null);
         this.dictionaries = new ArrayList<Dictionary>();
         this.priority = priority;
-        this.matchings = matchings;
     }
 
-    public DictionariesLoader(InputStream input) throws GimliException {
+    public DictionariesLoader(InputStream input) throws NejiException {
         assert (input != null);
         this.dictionaries = new ArrayList<Dictionary>();
-        this.matchings = new ArrayList<Matching>();
         loadPriority(input);
     }
 
-    private void loadPriority(InputStream input) throws GimliException {
+    private void loadPriority(InputStream input) throws NejiException {
         priority = new ArrayList<String>();
         BufferedReader br = new BufferedReader(new InputStreamReader(input));
         String line;
@@ -60,59 +68,33 @@ public class DictionariesLoader {
                     continue;
                 }
                 line = line.replace(".txt", ".tsv");
-
-                String[] parts = line.split("\t");
-
-                if (parts.length != 2) {
-                    throw new RuntimeException("The dictionaries priority file "
-                            + "does not follow the required format: <file>\t[EXACT|REGEX]");
-                }
-
-                Matching matching = null;
-                
-                try {
-                    matching = Matching.valueOf(parts[1]);
-                } catch (Exception ex) {
-                    throw new RuntimeException("The dictionaries priority file "
-                            + "does not follow the required format: <file>\t[EXACT|REGEX]");
-                }
-                
-                priority.add(parts[0]);
-                matchings.add(matching);
+                priority.add(line);
             }
             br.close();
         } catch (IOException ex) {
-            throw new GimliException("There was a problem reading the priority file.", ex);
+            throw new NejiException("There was a problem reading the priority file.", ex);
         }
-
     }
 
     public void load(File folder, boolean ignoreCase) {
         assert (folder != null);
         Pattern groupPattern = Pattern.compile("([A-Za-z0-9]+?)\\.");
 
-        for (int i = 0; i < priority.size(); i++) {
-            String name = priority.get(i);
-            Matching matching = matchings.get(i);
-
+        for (String name : priority) {
             String group = null;
             java.util.regex.Matcher m = groupPattern.matcher(name);
             while (m.find()) {
                 group = m.group(1);
             }
             if (group == null) {
-                throw new RuntimeException("The file name of the lexicon does not follow the required format: *GROUP.*");
+                throw new RuntimeException(
+                        "The file name of the lexicon does not follow the required format: *GROUP.*");
             }
 
-            Matcher matcher = null;
             String dictionaryFileName = folder.getAbsolutePath() + File.separator + name;
-            if (matching.equals(Matching.EXACT)) {
-                matcher = getExactMatcher(dictionaryFileName, ignoreCase);
-            } else if (matching.equals(Matching.REGEX)) {
-                matcher = getRegexMatcher(dictionaryFileName);
-            }
+            Matcher matcher = getExactMatcher(dictionaryFileName, ignoreCase);
 
-            Dictionary d = new Dictionary(matcher, matching, group);
+            Dictionary d = new Dictionary(matcher, group);
             dictionaries.add(d);
         }
     }
@@ -126,11 +108,6 @@ public class DictionariesLoader {
             log.setLevel(Level.SEVERE);
         }
         return EntityTagger.getMatcher(ap, log);
-    }
-
-    private Matcher getRegexMatcher(String fileName) {
-        HashMap<String, Pattern> patterns = ACIDMatcher.loadPatterns(new File(fileName)).getA();
-        return new RegexMatcher(patterns);
     }
 
     public List<Dictionary> getDictionaries() {

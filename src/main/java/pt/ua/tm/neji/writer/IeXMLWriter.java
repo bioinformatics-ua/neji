@@ -1,13 +1,25 @@
+/*
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
 package pt.ua.tm.neji.writer;
 
 /*
  * To change this template, choose Tools | Templates and open the template in
  * the editor.
  */
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+
 import monq.jfa.*;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -16,20 +28,25 @@ import pt.ua.tm.gimli.corpus.AnnotationID;
 import pt.ua.tm.gimli.corpus.Corpus;
 import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.corpus.Token;
-import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.gimli.tree.TreeNode;
-import pt.ua.tm.neji.core.Tagger;
+import pt.ua.tm.neji.core.module.BaseWriter;
 import pt.ua.tm.neji.disambiguator.Disambiguator;
+import pt.ua.tm.neji.exception.NejiException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
- *
- * @author david
+ * Writer that provides information following the IeXML inline format.
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
-public class IeXMLWriter extends Tagger {
+public class IeXMLWriter extends BaseWriter {
 
-    /**
-     * {@link Logger} to be used in the class.
-     */
+    /** {@link Logger} to be used in the class. */
     private static Logger logger = LoggerFactory.getLogger(IeXMLWriter.class);
     private Corpus corpus;
     private int sentenceCounter;
@@ -38,22 +55,25 @@ public class IeXMLWriter extends Tagger {
     private boolean discardSameIdDifferentSubGroup;
     private int detail;
 
-    public IeXMLWriter(Corpus corpus, int detail, boolean mergeNestedSameGroup, boolean discardSameSubGroupByPriority) throws GimliException {
+    public IeXMLWriter(Corpus corpus) throws NejiException {
+        this(corpus, 2, false, false);
+    }
+
+    public IeXMLWriter(Corpus corpus, int detail, boolean mergeNestedSameGroup, boolean discardSameSubGroupByPriority)
+            throws NejiException {
         super();
-        
+
         if (detail != 1 && detail != 2) {
-            throw new GimliException("Nested annotations detail must be 1 or 2.");
+            throw new RuntimeException("Nested annotations detail must be 1 or 2.");
         }
-        
+
         try {
             Nfa nfa = new Nfa(Nfa.NOTHING);
             nfa.or(Xml.STag("s"), start_sentence);
             nfa.or(Xml.ETag("s"), end_sentence);
-            this.dfa = nfa.compile(DfaRun.UNMATCHED_COPY);
-        } catch (CompileDfaException ex) {
-            throw new GimliException("There was a problem compiling the Dfa to process the document.", ex);
+            setNFA(nfa, DfaRun.UNMATCHED_COPY);
         } catch (ReSyntaxException ex) {
-            throw new GimliException("There is a syntax problem with the document.", ex);
+            throw new NejiException(ex);
         }
         this.corpus = corpus;
         this.mergeNestedSameGroup = mergeNestedSameGroup;
@@ -62,6 +82,7 @@ public class IeXMLWriter extends Tagger {
         this.sentenceCounter = 0;
         this.startSentence = 0;
     }
+
     private AbstractFaAction start_sentence = new AbstractFaAction() {
         @Override
         public void invoke(StringBuffer yytext, int start, DfaRun runner) {
@@ -77,7 +98,7 @@ public class IeXMLWriter extends Tagger {
             String sentence = yytext.substring(startSentence, start);
             int offset_id = sentence.indexOf('>') + 1;
             sentence = sentence.substring(offset_id);
-            
+
             // Get respective sentence from corpus
             Sentence s = corpus.getSentence(sentenceCounter);
 
@@ -106,7 +127,7 @@ public class IeXMLWriter extends Tagger {
 
         int lastEndSource = 0;
 
-        List<TreeNode<AnnotationID>> nodes = s.getAnnotationsTree().build(1);
+        List<TreeNode<AnnotationID>> nodes = s.getTree().build(1);
 
         for (TreeNode<AnnotationID> node : nodes) {
 

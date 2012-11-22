@@ -1,14 +1,25 @@
-package pt.ua.tm.neji.statistics;
-
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
+
+package pt.ua.tm.neji.statistics;
 
 
 /**
- *
- * @author david
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
 public class StatisticsEntry {
     private String name;
@@ -37,8 +48,6 @@ public class StatisticsEntry {
         this.group = group;
     }
 
-    
-    
     public int getOccurrences() {
         return occurrences;
     }
@@ -56,10 +65,10 @@ public class StatisticsEntry {
             return false;
         }
         final StatisticsEntry other = (StatisticsEntry) obj;
-        if (( this.name == null ) ? ( other.name != null ) : !this.name.equals(other.name)) {
+        if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
             return false;
         }
-        if (( this.group == null ) ? ( other.group != null ) : !this.group.equals(other.group)) {
+        if ((this.group == null) ? (other.group != null) : !this.group.equals(other.group)) {
             return false;
         }
         return true;
@@ -68,10 +77,10 @@ public class StatisticsEntry {
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 89 * hash + ( this.name != null ? this.name.hashCode() : 0 );
-        hash = 89 * hash + ( this.group != null ? this.group.hashCode() : 0 );
+        hash = 89 * hash + (this.name != null ? this.name.hashCode() : 0);
+        hash = 89 * hash + (this.group != null ? this.group.hashCode() : 0);
         return hash;
     }
-    
-    
+
+
 }

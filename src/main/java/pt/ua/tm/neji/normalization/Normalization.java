@@ -1,21 +1,33 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2012 David Campos, University of Aveiro.
+ *
+ * Neji is a framework for modular biomedical concept recognition made easy, fast and accessible.
+ *
+ * This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+ *
+ * This project is a free software, you are free to copy, distribute, change and transmit it. However, you may not use
+ * it for commercial purposes.
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 package pt.ua.tm.neji.normalization;
 
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.corpus.*;
 import pt.ua.tm.neji.dictionary.Dictionary;
-import pt.ua.tm.neji.dictionary.Dictionary.Matching;
-import pt.ua.tm.neji.test.LexEBIReader;
 import uk.ac.man.entitytagger.Mention;
 
+import java.util.List;
+
 /**
+ * Perform normalization of chunks of text provided by machine learning.
  *
- * @author david
+ * @author David Campos (<a href="mailto:david.campos@ua.pt">david.campos@ua.pt</a>)
+ * @version 1.0
+ * @since 1.0
  */
 public class Normalization {
 
@@ -23,13 +35,14 @@ public class Normalization {
      * {@link Logger} to be used in the class.
      */
     private static Logger logger = LoggerFactory.getLogger(Normalization.class);
-    
     private List<Dictionary> dictionaries;
     private String group;
+    private String sourceText;
 
-    public Normalization(final List<Dictionary> dictionaries, final String group) {
+    public Normalization(final List<Dictionary> dictionaries, final String group, final String sourceText) {
         this.dictionaries = dictionaries;
         this.group = group;
+        this.sourceText = sourceText;
     }
 
     public void normalize(Corpus c) {
@@ -49,32 +62,11 @@ public class Normalization {
 
 
             for (Dictionary d : dictionaries) {
-                if (match(d, newAnnotation, group)) {
+                if (match(d, newAnnotation, group, sourceText)) {
                     matched = true;
                     break;
                 }
             }
-
-//            if (!matched) {
-//                String text = newAnnotation.getText();
-//                text = text.replaceAll("gene", "");
-//                text = text.replaceAll("genes", "");
-//                text = text.replaceAll("protein", "");
-//                text = text.replaceAll("proteins", "");
-//                text = text.replaceAll("promoter", "");
-//                text = text.replaceAll("promoters", "");
-//                text = text.replaceAll("mutation", "");
-//                text = text.replaceAll("mutations", "");
-//                text = text.replaceAll("mRNA", "");
-//                text = text.replaceAll("complex", "");
-//
-//                for (Dictionary d : dictionaries) {
-//                    if (match(d, newAnnotation, group, text)) {
-//                        matched = true;
-//                        break;
-//                    }
-//                }
-//            }
 
             if (matched) {
                 s.addAnnotationToTree(newAnnotation);
@@ -85,36 +77,22 @@ public class Normalization {
         s.cleanAnnotations();
     }
 
-    private boolean match(Dictionary dictionary, AnnotationID a, String group) {
-        Mention m;
+    private boolean match(Dictionary dictionary, AnnotationID a, String group, String sourceText) {
         String[] ids;
-        String text = a.getText();
-        text = text.replaceAll("\\s+", "");
+
+        Sentence s = a.getSentence();
+
+
+        int startChar = s.getToken(a.getStartIndex()).getStartSource();
+        int endChar = s.getToken(a.getEndIndex()).getEndSource() + 1;
+
+        String text = sourceText.substring(startChar, endChar);
 
         List<Mention> mentions = dictionary.getMatcher().match(text);
-        
-        
-        
-        if (dictionary.getMatching().equals(Matching.REGEX)) {
-            logger.info("ANNOTATION: {}", a.getText());
-            for (int i=0; i<mentions.size(); i++) {
-                m = mentions.get(i);
-                logger.info("{} - {}", m.getText(), m.getIdsToString());
-            }
-            logger.info("");
-            return false;
-        }
 
-        if (mentions.size() == 1 && (m = mentions.get(0)).getText().equals(text)) {
-            ids = m.getIds();
-//            if (ids.length == 1) {
-//                // Non-ambiguos
-//                Identifier id = Identifier.getIdentifierFromText(ids[0]);
-//                id.setGroup(group);
-//                a.addID(id);
-//                return true;
-//            }
-
+        // Alternate
+        if (mentions.size() >= 1) {
+            ids = mentions.get(0).getIds();
             for (String textId : ids) {
                 Identifier id = Identifier.getIdentifierFromText(textId);
                 id.setGroup(group);
@@ -122,39 +100,6 @@ public class Normalization {
             }
             return true;
         }
-
         return false;
     }
-    
-    
-    
-
-//    private boolean match(Dictionary dictionary, AnnotationID a, String group, String text) {
-//        Mention m;
-//        String[] ids;
-//        //String text = a.getText();
-//        text = text.replaceAll("\\s+", "");
-//
-//        List<Mention> mentions = dictionary.getMatcher().match(text);
-//
-//        if (mentions.size() == 1 && (m = mentions.get(0)).getText().equals(text)) {
-//            ids = m.getIds();
-////            if (ids.length == 1) {
-////                // Non-ambiguos
-////                Identifier id = Identifier.getIdentifierFromText(ids[0]);
-////                id.setGroup(group);
-////                a.addID(id);
-////                return true;
-////            }
-//
-//            for (String textId : ids) {
-//                Identifier id = Identifier.getIdentifierFromText(textId);
-//                id.setGroup(group);
-//                a.addID(id);
-//            }
-//            return true;
-//        }
-//
-//        return false;
-//    }
 }
