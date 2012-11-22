@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ![](http://bioinformatics.ua.pt/wp-content/uploads/2012/11/neji_logo.png)
 
 Neji
@@ -38,9 +37,3 @@ License
 Copyright (C) 2011 David Campos, Universidade de Aveiro, Instituto de Engenharia Electrónica e Telemática de Aveiro
 
 Neji is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a copy of this license, visit [http://creativecommons.org/licenses/by-nc-sa/3.0/](http://creativecommons.org/licenses/by-nc-sa/3.0/).
-=======
-neji
-====
-
-Flexible and complex biomedical concept recognition made easy, fast and accessible.
->>>>>>> 190d2b0e377358b2e241887fdd09e566ca621c57
