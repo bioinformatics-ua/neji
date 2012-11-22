@@ -2,6 +2,9 @@ resources
 target
 logs
 
+#web
+web
+
 # osx noise
 .DS_Store
 profile
