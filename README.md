@@ -5,7 +5,9 @@ Neji
 
 Neji is a flexible, easy and powerfull framework for faster biomedical concept recognition. 
 
-It is open source and built around four key characteristics: modularity, scalability, speed, and usability. Neji integrates modules of various state-of-the-art methods for biomedical natural language processing (e.g., sentence splitting, tokenization, lemmatization, part-of-speech tagging, chunking and dependency parsing) and concept recognition (e.g., dictionaries and machine learning). The most popular input and output formats, such as Pubmed XML, IeXML, CoNLL and A1, are also supported.On top of the built-in functionalities, developers and researchers can implement new processing modules or pipelines, or use the provided command-line interface tool to build their own solutions, applying the most appropriate techniques to identify names of heterogeneous biomedical entities.
+It is open source and built around four key characteristics: modularity, scalability, speed, and usability. Neji integrates modules of various state-of-the-art methods for biomedical natural language processing (e.g., sentence splitting, tokenization, lemmatization, part-of-speech tagging, chunking and dependency parsing) and concept recognition (e.g., dictionaries and machine learning). The most popular input and output formats, such as Pubmed XML, IeXML, CoNLL and A1, are also supported.
+
+On top of the built-in functionalities, developers and researchers can implement new processing modules or pipelines, or use the provided command-line interface tool to build their own solutions, applying the most appropriate techniques to identify names of heterogeneous biomedical entities.
 
 Go to [http://bioinformatics.ua.pt/neji](http://bioinformatics.ua.pt/neji) for more information.
 
@@ -21,7 +23,7 @@ Bug tracker
 -----------
 Have a bug? Please create an issue here on GitHub!
 
-[https://github.com/davidcampos/neji/issues](https://github.com/davidcampos/neji/issues)
+[https://github.com/bioinformatics-ua/neji/issues](https://github.com/bioinformatics-ua/neji/issues)
 
 Team
 ----
